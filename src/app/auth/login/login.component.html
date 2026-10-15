@@ -1,0 +1,89 @@
+<div id="login-form" class="login-page-wrapper" [class.login-box]="!isMobile()">
+  <div class="login-form-container" [class.mobile]="isMobile()">
+    <div class="brand-section">
+      <img alt="GoConnect VNPT AI" class="logo" src="assets/images/icons/logo_login.svg" />
+      <h1 class="portal-title">VNPT AI Social</h1>
+      <p class="portal-subtitle">Cổng thông tin nội bộ 4 kênh chính thức của Tập đoàn VNPT</p>
+    </div>
+
+    <div class="form-input-login">
+      <form nz-form [formGroup]="loginForm" nzLayout="vertical" (ngSubmit)="doSendOtp()">
+        <nz-form-item>
+          <nz-form-label class="bold" nzFor="input-phone">Số điện thoại GoConnect</nz-form-label>
+          <nz-form-control nzErrorTip="Số điện thoại không đúng định dạng (10 chữ số)">
+            <div class="phone-input-group">
+              <app-icon name="user" [size]="18" customClass="prefix-icon" />
+              <input
+                placeholder="Nhập số điện thoại (VD: 0879257827)"
+                id="input-phone"
+                type="tel"
+                nz-input
+                formControlName="phone"
+              />
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+
+        @if (formErrorMsg()) {
+          <div nz-typography nzType="danger" class="error-banner">{{ formErrorMsg() }}</div>
+        }
+
+        <button
+          type="submit"
+          nz-button
+          nzType="primary"
+          nzSize="large"
+          class="submit-btn"
+          [nzLoading]="isLoggingIn()"
+        >
+          Nhận mã xác thực OTP
+        </button>
+      </form>
+
+      @if (isDevMode) {
+        <div class="dev-token-section">
+          <button
+            type="button"
+            class="dev-toggle-link"
+            (click)="showDevTokenBox.set(!showDevTokenBox())"
+          >
+            {{ showDevTokenBox() ? 'Ẩn đăng nhập nhanh bằng Token (Dev)' : 'Đăng nhập nhanh bằng gcnToken (Dev)' }}
+          </button>
+          @if (showDevTokenBox()) {
+            <div class="dev-token-box">
+              <textarea
+                nz-input
+                rows="3"
+                placeholder="Dán GoConnect RS256 token tại đây để test local không tốn SMS..."
+                [ngModel]="devGcnToken()"
+                (ngModelChange)="devGcnToken.set($event)"
+              ></textarea>
+              <button
+                type="button"
+                nz-button
+                nzType="default"
+                class="w-100 mt-2"
+                [nzLoading]="isLoggingIn()"
+                (click)="loginWithDevToken()"
+              >
+                Đăng nhập bằng Token
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="footer-section">
+      <div class="download-row">
+        <span>Tải ứng dụng GoConnect </span>
+        <a href="https://vnptai.io/goconnect/vi" target="_blank" rel="noopener noreferrer">tại đây</a>
+      </div>
+      <div class="copyright">
+        <app-icon name="copyright" [size]="14" />
+        <span>2026 GoConnect AI Social — Một sản phẩm của</span>
+        <img alt="VNPT AI" src="assets/images/icons/logo_ai.svg" height="16" />
+      </div>
+    </div>
+  </div>
+</div>

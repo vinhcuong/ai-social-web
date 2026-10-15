@@ -1,0 +1,100 @@
+<div id="login-form" class="login-page-wrapper" [class.login-box]="!isMobile()">
+  <div class="login-form-container" [class.mobile]="isMobile()">
+    <div class="brand-section">
+      <img alt="GoConnect VNPT AI" class="logo" src="assets/images/icons/logo_login.svg" />
+      <h1 class="portal-title">Xác thực mã OTP</h1>
+      <p class="portal-subtitle">
+        Mã xác thực đã được gửi tới số điện thoại <strong>{{ phoneNumberHide() }}</strong>
+      </p>
+    </div>
+
+    <div class="form-input-login">
+      <form nz-form nzLayout="vertical" (ngSubmit)="submitForm()">
+        <nz-form-item>
+          <nz-form-label class="bold" nzFor="input-otp">Mã xác thực OTP (6 chữ số)</nz-form-label>
+          <nz-form-control>
+            <div class="otp-input-group">
+              <app-icon name="Leading_icon" [size]="18" customClass="prefix-icon" />
+              <input
+                id="input-otp"
+                type="tel"
+                nz-input
+                maxlength="6"
+                name="otp"
+                placeholder="Nhập 6 chữ số OTP"
+                [ngModel]="otp()"
+                (ngModelChange)="otp.set($event)"
+              />
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+
+        <p class="timer-hint">
+          Mã OTP sẽ hết hạn trong vòng:
+          <app-countdown-timer
+            format="ms"
+            [countdown]="true"
+            [startTime]="timer()"
+            (onTick)="onTick($event)"
+          />
+        </p>
+
+        @if (errorMsg()) {
+          <div nz-typography nzType="danger" class="error-banner">{{ errorMsg() }}</div>
+        }
+
+        <label
+          class="terms-checkbox"
+          nz-checkbox
+          [ngModel]="isCheckedButton()"
+          (ngModelChange)="isCheckedButton.set($event)"
+          [ngModelOptions]="{ standalone: true }"
+        >
+          Đồng ý với Điều khoản sử dụng và Chính sách bảo mật của VNPT GoConnect
+        </label>
+
+        <button
+          type="submit"
+          nz-button
+          nzType="primary"
+          nzSize="large"
+          class="action-btn"
+          [disabled]="!isCheckedButton()"
+          [nzLoading]="isLoggingIn()"
+        >
+          Đăng nhập
+        </button>
+
+        <button
+          type="button"
+          nz-button
+          nzSize="large"
+          class="action-btn secondary"
+          [disabled]="isLoggingIn()"
+          (click)="onResendOtp()"
+        >
+          Gửi lại mã OTP
+        </button>
+
+        <button
+          type="button"
+          nz-button
+          nzSize="large"
+          class="action-btn secondary"
+          [disabled]="isLoggingIn()"
+          (click)="onClickBack()"
+        >
+          Quay lại
+        </button>
+      </form>
+    </div>
+
+    <div class="footer-section">
+      <div class="copyright">
+        <app-icon name="copyright" [size]="14" />
+        <span>2026 GoConnect AI Social — Một sản phẩm của</span>
+        <img alt="VNPT AI" src="assets/images/icons/logo_ai.svg" height="16" />
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="gomeetNoteFace" x1="8" y1="8" x2="36" y2="44" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4C9DFF" />
+      <stop offset="1" stop-color="#0B48C4" />
+    </linearGradient>
+    <linearGradient id="gomeetNoteEdge" x1="8" y1="14" x2="20" y2="46" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1C6FE8" />
+      <stop offset="1" stop-color="#062F86" />
+    </linearGradient>
+    <linearGradient id="gomeetNoteBack" x1="24" y1="4" x2="42" y2="26" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C8DFFF" />
+      <stop offset="1" stop-color="#79AEFF" />
+    </linearGradient>
+  </defs>
+  <g transform="translate(24 24) rotate(-10) skewX(-10) scale(0.92) translate(-24 -24)">
+    <rect x="17" y="7" width="20" height="30" rx="5" fill="url(#gomeetNoteBack)" />
+    <rect x="8" y="12" width="26" height="32" rx="5" fill="url(#gomeetNoteEdge)" />
+    <rect x="8" y="10" width="26" height="32" rx="5" fill="url(#gomeetNoteFace)" />
+    <g fill="#FFFFFF">
+      <circle cx="14.5" cy="18" r="1.7" opacity="0.95" />
+      <rect x="18.5" y="16.6" width="11.5" height="2.8" rx="1.4" opacity="0.95" />
+      <circle cx="14.5" cy="26" r="1.7" opacity="0.8" />
+      <rect x="18.5" y="24.6" width="11.5" height="2.8" rx="1.4" opacity="0.8" />
+      <circle cx="14.5" cy="34" r="1.7" opacity="0.62" />
+      <rect x="18.5" y="32.6" width="7.5" height="2.8" rx="1.4" opacity="0.62" />
+    </g>
+  </g>
+</svg>
