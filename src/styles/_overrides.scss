@@ -1,0 +1,15 @@
+// Scoped global overrides for ng-zorro-antd modals, popovers, and inputs
+.ai-social-modal .ant-modal-content {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.ai-social-modal .ant-modal-header {
+  border-bottom: 1px solid #f1f5f9;
+  padding: 16px 20px;
+}
+
+.ai-social-popover .ant-popover-inner {
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+}

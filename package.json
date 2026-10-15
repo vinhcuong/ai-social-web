@@ -1,0 +1,55 @@
+{
+  "name": "vnpt-ai-social-web",
+  "version": "1.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve --port 4205",
+    "build": "ng build vnpt-ai-social-web --configuration production",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test --watch=false"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "^22.0.5",
+    "@angular/cdk": "^22.0.3",
+    "@angular/common": "^22.0.5",
+    "@angular/compiler": "^22.0.5",
+    "@angular/core": "^22.0.5",
+    "@angular/forms": "^22.0.5",
+    "@angular/platform-browser": "^22.0.5",
+    "@angular/platform-browser-dynamic": "^22.0.5",
+    "@angular/router": "^22.0.5",
+    "bootstrap": "^5.3.8",
+    "date-fns": "^4.1.0",
+    "dayjs": "^1.11.13",
+    "luxon": "^2.5.0",
+    "marked": "^16.2.0",
+    "ng-zorro-antd": "^22.0.1",
+    "rxjs": "~7.8.0",
+    "socket.io-client": "^4.8.3",
+    "tslib": "^2.3.1",
+    "zone.js": "^0.16.2"
+  },
+  "overrides": {
+    "@babel/core": "7.29.7",
+    "esbuild": "0.28.1",
+    "uuid": "11.1.1"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.0.5",
+    "@angular/cli": "^22.0.5",
+    "@angular/compiler-cli": "^22.0.5",
+    "@types/jasmine": "~3.10.6",
+    "@types/luxon": "^2.4.0",
+    "@types/node": "^16.11.45",
+    "jasmine-core": "~3.99.1",
+    "karma": "~6.4.4",
+    "karma-chrome-launcher": "~3.1.0",
+    "karma-coverage": "~2.1.0",
+    "karma-jasmine": "~4.0.1",
+    "karma-jasmine-html-reporter": "^1.7.0",
+    "less": "^4.2.0",
+    "typescript": "~6.0.2"
+  },
+  "description": "VNPT AI Social Web — Cổng thông tin 4 kênh chính thức (Thông báo khẩn, Sự kiện công ty, Truyền thông nội bộ, Sổ tay văn hoá)."
+}
