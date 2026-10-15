@@ -1,0 +1,158 @@
+<div class="shell-layout">
+  <!-- Left Navigation Sidebar -->
+  <aside class="shell-sidebar" [class.mobile-open]="mobileSidebarOpen()">
+    <div class="brand-header">
+      <img src="assets/images/icons/auth/logo.svg" alt="VNPT GoConnect" class="brand-logo" />
+      <div class="brand-titles">
+        <span class="brand-name">VNPT GoConnect</span>
+        <span class="brand-sub">Truyền thông nội bộ</span>
+      </div>
+    </div>
+
+    <nav class="channel-nav">
+      <div class="nav-section-label">KÊNH TRUYỀN THÔNG</div>
+      @for (ch of channels; track ch.code) {
+        <a
+          class="channel-nav-item"
+          [routerLink]="['/channels', ch.code]"
+          routerLinkActive="active"
+          [style.--ch-color]="ch.accentColor"
+          [style.--ch-bg]="ch.softBgColor"
+          (click)="mobileSidebarOpen.set(false)"
+        >
+          <span class="channel-indicator" [style.background]="ch.accentColor"></span>
+          <div class="channel-info">
+            <span class="channel-name">{{ ch.name }}</span>
+            <span class="channel-desc">{{ ch.subtitle }}</span>
+          </div>
+          @if (badgeFor(ch.code) > 0) {
+            <span
+              class="unread-badge"
+              [class.urgent]="ch.code === 'khan'"
+            >
+              {{ badgeFor(ch.code) > 99 ? '99+' : badgeFor(ch.code) }}
+            </span>
+          }
+        </a>
+      }
+    </nav>
+
+    <!-- Mandatory Progress Summary Card -->
+    @if (state.myProgress(); as prog) {
+      <div class="sidebar-progress-card">
+        <div class="prog-header">
+          <span>Hoàn thành đọc bắt buộc</span>
+          <strong>{{ prog.completionRate || 0 }}%</strong>
+        </div>
+        <div class="prog-bar">
+          <div class="prog-fill" [style.width.%]="prog.completionRate || 0"></div>
+        </div>
+        <div class="prog-sub">
+          Đã xác nhận {{ prog.readMandatory || 0 }}/{{ prog.totalMandatory || 0 }} bài viết
+        </div>
+      </div>
+    }
+
+    <!-- User Profile Footer -->
+    <div class="sidebar-user-footer">
+      @if (auth.currentUser(); as user) {
+        <div class="user-avatar">
+          @if (user.avatarUrl) {
+            <img [src]="user.avatarUrl" [alt]="user.fullName" />
+          } @else {
+            <span>{{ userInitials() }}</span>
+          }
+        </div>
+        <div class="user-details">
+          <div class="user-name">{{ user.fullName }}</div>
+          <div class="user-unit">{{ user.unit?.name || 'Nhân sự VNPT' }}</div>
+        </div>
+      }
+      <button
+        type="button"
+        class="logout-btn"
+        title="Đăng xuất"
+        (click)="onLogout()"
+      >
+        <app-icon name="menu/logout" [size]="18" />
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Workspace Area -->
+  <div class="shell-main">
+    <!-- Top Header Bar -->
+    <header class="shell-topbar">
+      <div class="topbar-left">
+        <button
+          type="button"
+          class="mobile-menu-btn"
+          (click)="mobileSidebarOpen.set(!mobileSidebarOpen())"
+        >
+          ☰
+        </button>
+        <span class="workspace-breadcrumb">Không gian Truyền thông & Văn hoá số VNPT</span>
+      </div>
+
+      <div class="topbar-right">
+        <div class="notification-wrapper">
+          <button
+            type="button"
+            class="notif-bell-btn"
+            (click)="toggleNotificationPanel()"
+          >
+            <app-icon name="common/notification" [size]="20" />
+            @if (state.unreadNotificationCount() > 0) {
+              <span class="notif-dot">{{ state.unreadNotificationCount() }}</span>
+            }
+          </button>
+
+          @if (showNotifications()) {
+            <div class="notif-dropdown">
+              <div class="notif-header">
+                <h4>Thông báo gần đây</h4>
+                <button type="button" (click)="showNotifications.set(false)">✕</button>
+              </div>
+              <div class="notif-list">
+                @for (n of state.notifications(); track n.id) {
+                  <button
+                    type="button"
+                    class="notif-item"
+                    [class.unread]="!n.isSeen"
+                    (click)="openNotification(n)"
+                  >
+                    <div class="notif-title">{{ n.title }}</div>
+                    @if (n.body) {
+                      <div class="notif-body">{{ n.body }}</div>
+                    }
+                    <div class="notif-time">{{ relativeDate(n.createdAt) }}</div>
+                  </button>
+                } @empty {
+                  <div class="notif-empty">Chưa có thông báo mới.</div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </header>
+
+    <!-- Active Emergency Broadcast Alert Banner -->
+    @if (state.activeEmergencyPost(); as urgentPost) {
+      <div class="emergency-top-banner">
+        <div class="emerg-text">
+          <span class="emerg-pill">KHẨN CẤP</span>
+          <strong>{{ urgentPost.title }}</strong>
+        </div>
+        <a [routerLink]="['/posts', urgentPost.id]" class="emerg-cta">
+          Xem & Xác nhận ngay →
+        </a>
+      </div>
+    }
+
+    <!-- Routed Channel / Post Content -->
+    <div class="shell-viewport">
+      <router-outlet />
+    </div>
+  </div>
+</div>

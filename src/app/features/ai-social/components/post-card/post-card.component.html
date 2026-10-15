@@ -1,0 +1,162 @@
+<article
+  class="post-card"
+  [class.emergency]="post().channelCode === 'khan'"
+  [class.ended]="post().status === 'ended'"
+  [class.unread-mandatory]="post().isMandatory && !post().isRead"
+>
+  <header class="post-card-header">
+    <div class="author-row">
+      <div class="author-avatar">
+        {{ (post().authorName || 'V')[0] }}
+      </div>
+      <div class="author-meta">
+        <div class="author-name-line">
+          <span class="author-name">{{ post().authorName || 'Ban Truyền Thông VNPT' }}</span>
+          @if (post().pinnedAt) {
+            <span class="badge-pill pinned">📌 Đã ghim</span>
+          }
+          @if (post().isMandatory) {
+            <span class="badge-pill mandatory">Bắt buộc đọc</span>
+          }
+          @if (post().status === 'ended') {
+            <span class="badge-pill ended">Đã kết thúc</span>
+          }
+        </div>
+        <div class="sub-meta">
+          <span>{{ relativeDate() }}</span>
+          <span>·</span>
+          <span>Đối tượng: {{ audienceLabel() }}</span>
+          @if (post().code) {
+            <span>·</span>
+            <a [routerLink]="['/r/p', post().code]" class="code-link">#{{ post().code }}</a>
+          }
+        </div>
+      </div>
+    </div>
+
+    @if (canManage()) {
+      <div class="publisher-toolbar">
+        <button type="button" class="tool-btn" (click)="onTogglePin()">
+          {{ post().pinnedAt ? 'Bỏ ghim' : 'Ghim' }}
+        </button>
+        @if (post().isMandatory) {
+          <button
+            type="button"
+            class="tool-btn"
+            [disabled]="remindLoading()"
+            (click)="onRemindUnread()"
+          >
+            Nhắc đọc
+          </button>
+        }
+        @if (post().channelCode === 'khan' && post().status !== 'ended') {
+          <button type="button" class="tool-btn warn" (click)="onEndEmergency()">
+            Kết thúc khẩn
+          </button>
+        }
+        <button type="button" class="tool-btn danger" (click)="onDeletePost()">Xóa</button>
+      </div>
+    }
+  </header>
+
+  <h3 class="post-title">
+    <a [routerLink]="['/posts', post().id]">{{ post().title }}</a>
+  </h3>
+
+  <div class="post-markdown-body" [innerHTML]="renderedHtml()"></div>
+
+  @if (post().channelCode === 'sukien') {
+    <app-event-rsvp-card [post]="post()" (rsvpChanged)="postChanged.emit($event)" />
+  }
+
+  @if (post().poll; as pollData) {
+    <app-poll-card
+      [postId]="post().id"
+      [poll]="pollData"
+      (pollUpdated)="onPollUpdated($event)"
+    />
+  }
+
+  @if (mediaAttachments().length > 0) {
+    <div class="media-grid" [class.multi]="mediaAttachments().length > 1">
+      @for (att of mediaAttachments(); track att.id; let idx = $index) {
+        <div class="media-tile" (click)="openMedia(idx)">
+          @if (isVideo(att)) {
+            <video [src]="att.downloadUrl || att.fileUrl" preload="metadata"></video>
+            <span class="video-play-badge">▶ Video</span>
+          } @else {
+            <img [src]="att.thumbnailUrl || att.downloadUrl || att.fileUrl" [alt]="att.fileName" loading="lazy" />
+          }
+        </div>
+      }
+    </div>
+  }
+
+  @if (documentAttachments().length > 0) {
+    <div class="doc-list">
+      @for (doc of documentAttachments(); track doc.id) {
+        <button type="button" class="doc-chip" (click)="openDocument(doc)">
+          <app-icon name="file-02" [size]="18" />
+          <span class="doc-name">{{ doc.fileName }}</span>
+          <span class="doc-size">{{ fileSizeText(doc.fileSize) }}</span>
+        </button>
+      }
+    </div>
+  }
+
+  @if (post().isMandatory || post().channelCode === 'khan') {
+    <div class="ack-section" [class.acknowledged]="post().isRead">
+      <div class="ack-progress-info">
+        <span>
+          Tiến độ xác nhận: <strong>{{ post().readCount || 0 }}</strong> /
+          {{ post().recipientCount || 0 }} nhân sự ({{ readRatePercent() }}%)
+        </span>
+        <div class="mini-progress-track">
+          <div class="mini-progress-bar" [style.width.%]="readRatePercent()"></div>
+        </div>
+      </div>
+
+      @if (post().isRead) {
+        <span class="ack-done-badge">✓ Đã xác nhận đọc</span>
+      } @else {
+        <button
+          type="button"
+          nz-button
+          nzType="primary"
+          nzDanger
+          [nzLoading]="ackLoading()"
+          (click)="onAckRead()"
+        >
+          Tôi đã đọc và nắm rõ thông tin
+        </button>
+      }
+    </div>
+  }
+
+  <footer class="post-card-footer">
+    <div class="left-actions">
+      <button
+        type="button"
+        class="action-pill"
+        [class.hearted]="post().isHearted"
+        (click)="onToggleHeart()"
+      >
+        <span>{{ post().isHearted ? '❤️' : '🤍' }}</span>
+        <span>Thích ({{ post().heartCount || 0 }})</span>
+      </button>
+
+      @if (!post().isMandatory && !post().isRead) {
+        <button type="button" class="action-pill" (click)="onAckRead()">
+          <span>✓ Đánh dấu đã đọc</span>
+        </button>
+      }
+    </div>
+
+    <div class="right-actions">
+      <button type="button" class="action-pill share" (click)="shareRequested.emit(post())">
+        <app-icon name="share-01" [size]="16" />
+        <span>Chia sẻ</span>
+      </button>
+    </div>
+  </footer>
+</article>

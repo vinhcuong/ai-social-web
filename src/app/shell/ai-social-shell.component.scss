@@ -1,0 +1,189 @@
+.shell-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f4f6f9;
+}
+
+.shell-sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 40;
+
+  @media (max-width: 920px) {
+    position: fixed;
+    left: -290px;
+    transition: left 0.2s ease;
+    &.mobile-open {
+      left: 0;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.2);
+    }
+  }
+}
+
+.brand-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid #f1f5f9;
+
+  .brand-logo { width: 38px; height: 38px; }
+  .brand-titles {
+    display: flex;
+    flex-direction: column;
+    .brand-name { font-size: 16px; font-weight: 800; color: #0f172a; line-height: 1.2; }
+    .brand-sub { font-size: 12px; color: #2563eb; font-weight: 600; }
+  }
+}
+
+.channel-nav {
+  flex: 1;
+  padding: 16px 12px;
+  overflow-y: auto;
+
+  .nav-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    padding: 0 10px 8px;
+    letter-spacing: 0.04em;
+  }
+
+  .channel-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    text-decoration: none;
+    margin-bottom: 6px;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+
+    &:hover { background: #f8fafc; }
+    &.active {
+      background: var(--ch-bg, #eff6ff);
+      border-color: var(--ch-color, #2563eb);
+      .channel-name { color: var(--ch-color, #2563eb); font-weight: 700; }
+    }
+
+    .channel-indicator { width: 6px; height: 32px; border-radius: 4px; flex-shrink: 0; }
+    .channel-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      .channel-name { font-size: 14px; font-weight: 600; color: #1e293b; }
+      .channel-desc { font-size: 11px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    }
+
+    .unread-badge {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #2563eb;
+      color: #ffffff;
+      &.urgent { background: #dc2626; }
+    }
+  }
+}
+
+.sidebar-progress-card {
+  margin: 0 14px 14px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  .prog-header { display: flex; justify-content: space-between; font-size: 12px; color: #334155; margin-bottom: 6px; }
+  .prog-bar {
+    height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin-bottom: 6px;
+    .prog-fill { height: 100%; background: #2563eb; }
+  }
+  .prog-sub { font-size: 11px; color: #64748b; }
+}
+
+.sidebar-user-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-top: 1px solid #e2e8f0;
+
+  .user-avatar {
+    width: 36px; height: 36px; border-radius: 50%; background: #dbeafe; color: #1d4ed8;
+    font-weight: 700; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;
+    img { width: 100%; height: 100%; object-fit: cover; }
+  }
+  .user-details {
+    flex: 1; min-width: 0;
+    .user-name { font-size: 13px; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-unit { font-size: 11px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  }
+  .logout-btn {
+    border: none; background: transparent; color: #64748b; cursor: pointer; padding: 6px; border-radius: 8px;
+    &:hover { background: #fee2e2; color: #dc2626; }
+  }
+}
+
+.shell-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+.shell-topbar {
+  height: 60px; background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 30;
+  .topbar-left {
+    display: flex; align-items: center; gap: 12px;
+    .mobile-menu-btn {
+      display: none; border: 1px solid #cbd5e1; background: #ffffff; border-radius: 8px; padding: 4px 10px; cursor: pointer;
+      @media (max-width: 920px) { display: inline-flex; }
+    }
+    .workspace-breadcrumb { font-size: 14px; font-weight: 600; color: #334155; }
+  }
+}
+
+.notification-wrapper {
+  position: relative;
+  .notif-bell-btn {
+    position: relative; border: 1px solid #e2e8f0; background: #f8fafc; width: 38px; height: 38px;
+    border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+    .notif-dot {
+      position: absolute; top: -4px; right: -4px; background: #dc2626; color: #ffffff;
+      font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 999px;
+    }
+  }
+  .notif-dropdown {
+    position: absolute; right: 0; top: 46px; width: 340px; background: #ffffff;
+    border: 1px solid #e2e8f0; border-radius: 14px; box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14); overflow: hidden; z-index: 50;
+    .notif-header {
+      display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f1f5f9;
+      h4 { margin: 0; font-size: 14px; font-weight: 700; }
+      button { border: none; background: transparent; cursor: pointer; }
+    }
+    .notif-list { max-height: 360px; overflow-y: auto; }
+    .notif-item {
+      width: 100%; text-align: left; border: none; border-bottom: 1px solid #f8fafc; background: #ffffff; padding: 12px 16px; cursor: pointer;
+      &.unread { background: #eff6ff; }
+      &:hover { background: #f8fafc; }
+      .notif-title { font-size: 13px; font-weight: 600; color: #0f172a; }
+      .notif-body { font-size: 12px; color: #475569; margin-top: 2px; }
+      .notif-time { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+    }
+    .notif-empty { padding: 24px; text-align: center; font-size: 13px; color: #64748b; }
+  }
+}
+
+.emergency-top-banner {
+  background: #dc2626; color: #ffffff; padding: 10px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  .emerg-text {
+    display: flex; align-items: center; gap: 10px; font-size: 13px;
+    .emerg-pill { background: #ffffff; color: #dc2626; font-weight: 800; font-size: 11px; padding: 2px 8px; border-radius: 999px; }
+  }
+  .emerg-cta { color: #ffffff; font-size: 13px; font-weight: 700; text-decoration: underline; white-space: nowrap; }
+}
