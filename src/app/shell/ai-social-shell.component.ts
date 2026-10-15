@@ -77,6 +77,6 @@ export class AiSocialShellComponent implements OnInit {
   onLogout(): void {
     this.socket.disconnect();
     this.session.clearAll();
-    this.router.navigate(['/auth/login']);
+    this.router.navigate(['/login']);
   }
 }
