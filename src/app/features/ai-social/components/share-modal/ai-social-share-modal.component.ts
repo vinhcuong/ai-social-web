@@ -4,6 +4,7 @@ import { NzButtonComponent } from 'ng-zorro-antd/button';
 import { CHANNELS_META } from '../../../../core/constants/storage-keys';
 import { PostModel } from '../../../../core/models/ai-social.models';
 import { AiSocialHostBridgeService } from '../../../../core/services/ai-social-host-bridge.service';
+import { AiSocialApiService } from '../../services/ai-social-api.service';
 import { AppIcon } from '../../../../shared/icon/icon';
 
 @Component({
@@ -130,6 +131,7 @@ import { AppIcon } from '../../../../shared/icon/icon';
 })
 export class AiSocialShareModalComponent {
   readonly bridge = inject(AiSocialHostBridgeService);
+  private readonly api = inject(AiSocialApiService);
 
   readonly visible = model<boolean>(false);
   readonly post = input<PostModel | null>(null);
@@ -149,6 +151,7 @@ export class AiSocialShareModalComponent {
     const p = this.post();
     if (!p) return;
     this.bridge.forwardToGoConnectWebView(p);
+    this.api.trackShare(p.id, { source: 'web', target: 'gcn_forward' }).catch(() => {});
     this.visible.set(false);
   }
 
@@ -156,12 +159,15 @@ export class AiSocialShareModalComponent {
     const p = this.post();
     if (!p) return;
     await this.bridge.shareViaOsSheet(p);
+    this.api.trackShare(p.id, { source: 'web', target: 'system_share' }).catch(() => {});
     this.visible.set(false);
   }
 
   async onCopyLink(): Promise<void> {
     const url = this.shareUrl();
     if (!url) return;
+    const p = this.post();
+    if (p) this.api.trackShare(p.id, { source: 'web', target: 'copy_link' }).catch(() => {});
     await this.bridge.copyLink(url);
     this.visible.set(false);
   }

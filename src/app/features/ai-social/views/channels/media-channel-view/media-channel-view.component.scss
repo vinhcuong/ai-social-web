@@ -1,0 +1,95 @@
+.media-channel-page {
+  background: #f8fafc;
+  min-height: calc(100vh - 60px);
+  padding: 20px 16px 64px;
+}
+
+.media-feed-column {
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.media-header-card {
+  background: #ffffff;
+  border: 1px solid #e5ddf8;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .back-home-btn {
+    width: 32px; height: 32px; border-radius: 8px; background: #f5f2fd;
+    color: #5f31d3; text-decoration: none; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .header-icon { width: 42px; height: 42px; object-fit: contain; }
+  .header-titles {
+    h1 { margin: 0; font-size: 18px; font-weight: 700; color: #000a1a; }
+    p { margin: 2px 0 0; font-size: 13px; color: #6b717a; }
+  }
+}
+
+.campaign-hero-banner {
+  position: relative;
+  background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 55%, #7c3aed 100%);
+  color: #ffffff;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 10px 24px rgba(95, 49, 211, 0.22);
+
+  .campaign-badge {
+    display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+    background: rgba(255, 255, 255, 0.2); padding: 3px 10px; border-radius: 999px; margin-bottom: 8px;
+  }
+  h2 { margin: 0 0 6px; font-size: 17px; font-weight: 700; color: #ffffff; line-height: 24px; }
+  p { margin: 0; font-size: 13px; color: rgba(255, 255, 255, 0.9); line-height: 19px; }
+
+  .hero-close-btn {
+    border: none; background: rgba(255, 255, 255, 0.16); color: #ffffff;
+    width: 28px; height: 28px; border-radius: 8px; cursor: pointer; flex-shrink: 0;
+  }
+}
+
+.media-toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  .media-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .media-pill-btn {
+    height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid #e2e8f0;
+    background: #ffffff; color: #475569; font-size: 13px; font-weight: 600; cursor: pointer;
+    &.active { background: #5f31d3; border-color: #5f31d3; color: #ffffff; }
+  }
+  .media-search-input {
+    height: 36px; border: 1px solid #e2e8f0; border-radius: 999px;
+    padding: 0 14px; font-size: 13px; background: #ffffff; min-width: 220px; box-sizing: border-box;
+    @media (max-width: 640px) { min-width: 0; width: 100%; }
+  }
+}
+
+.media-posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  .highlighted-wrap {
+    border-radius: 16px;
+    box-shadow: 0 0 0 3px rgba(95, 49, 211, 0.25);
+  }
+}
+
+.media-empty-box {
+  background: #ffffff; border: 1px solid #eaeaea; border-radius: 12px;
+  padding: 32px; text-align: center; color: #6b717a;
+}

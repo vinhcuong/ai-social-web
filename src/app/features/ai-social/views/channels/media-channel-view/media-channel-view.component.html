@@ -1,0 +1,85 @@
+<div class="media-channel-page">
+  <div class="media-feed-column">
+    <!-- ChannelPageHeader -->
+    <header class="media-header-card">
+      <a [routerLink]="['/home']" class="back-home-btn" title="Về trang chủ AI Social">←</a>
+      <img
+        src="assets/ai-social/home/truyen-thong-noi-bo.png"
+        alt="Truyền thông nội bộ"
+        class="header-icon"
+      />
+      <div class="header-titles">
+        <h1>Truyền thông nội bộ</h1>
+        <p>Chiến dịch truyền thông, câu chuyện văn hóa, vinh danh cá nhân &amp; tập thể</p>
+      </div>
+    </header>
+
+    <!-- Dismissible MediaCampaignHeroBanner -->
+    @if (showCampaignHero()) {
+      <section class="campaign-hero-banner">
+        <div class="hero-content">
+          <span class="campaign-badge">CHIẾN DỊCH NỔI BẬT</span>
+          <h2>Chiến dịch 90 ngày đêm Chuyển đổi số &amp; Ứng dụng GenAI toàn Tập đoàn VNPT</h2>
+          <p>
+            Cùng chia sẻ câu chuyện đổi mới sáng tạo, sáng kiến tự động hóa và bình chọn các tập thể xuất sắc nhất Quý III/2026.
+          </p>
+        </div>
+        <button
+          type="button"
+          class="hero-close-btn"
+          title="Ẩn banner chiến dịch"
+          (click)="showCampaignHero.set(false)"
+        >
+          ✕
+        </button>
+      </section>
+    }
+
+    <!-- Search & MediaFilterPillBar -->
+    <div class="media-toolbar-row">
+      <div class="media-pills">
+        @for (pill of filterPills; track pill.code) {
+          <button
+            type="button"
+            class="media-pill-btn"
+            [class.active]="selectedPillCode() === pill.code"
+            (click)="selectedPillCode.set(pill.code)"
+          >
+            {{ pill.label }}
+          </button>
+        }
+      </div>
+      <input
+        type="text"
+        class="media-search-input"
+        placeholder="Tìm kiếm bài viết, chiến dịch..."
+        [ngModel]="searchText()"
+        (ngModelChange)="searchText.set($event)"
+      />
+    </div>
+
+    <!-- Inline Composer with Poll Support -->
+    <app-inline-composer-card
+      channelCode="truyenthong"
+      [categories]="categories()"
+      (postCreated)="postCreated.emit($event)"
+    />
+
+    <!-- Media Feed Cards -->
+    <div class="media-posts-list">
+      @for (post of filteredPosts(); track post.id) {
+        <div [id]="'post-' + post.id" [class.highlighted-wrap]="highlightId() === post.id">
+          <app-post-card
+            [post]="post"
+            (postChanged)="postUpdated.emit($event)"
+            (postDeleted)="postDeleted.emit($event)"
+            (shareRequested)="shareRequested.emit($event)"
+            (mediaClicked)="mediaClicked.emit($event)"
+          />
+        </div>
+      } @empty {
+        <div class="media-empty-box">Chưa có bài viết nào trong chuyên mục này.</div>
+      }
+    </div>
+  </div>
+</div>

@@ -80,13 +80,11 @@
   @if (mediaAttachments().length > 0) {
     <div class="media-grid" [class.multi]="mediaAttachments().length > 1">
       @for (att of mediaAttachments(); track att.id; let idx = $index) {
-        <div class="media-tile" (click)="openMedia(idx)">
-          @if (isVideo(att)) {
-            <video [src]="att.downloadUrl || att.fileUrl" preload="metadata"></video>
-            <span class="video-play-badge">▶ Video</span>
-          } @else {
-            <img [src]="att.thumbnailUrl || att.downloadUrl || att.fileUrl" [alt]="att.fileName" loading="lazy" />
-          }
+        <div class="media-tile">
+          <app-media-tile
+            [media]="att"
+            (mediaClick)="openMedia(idx)"
+          />
         </div>
       }
     </div>

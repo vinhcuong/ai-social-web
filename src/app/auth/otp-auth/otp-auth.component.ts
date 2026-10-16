@@ -1,43 +1,27 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal, viewChild } from '@angular/core';
 import { Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DateTime } from 'luxon';
-import { NzFormControlComponent, NzFormDirective, NzFormItemComponent, NzFormLabelComponent } from 'ng-zorro-antd/form';
-import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzCheckboxComponent } from 'ng-zorro-antd/checkbox';
 import { NzButtonComponent } from 'ng-zorro-antd/button';
-import { NzTypographyComponent } from 'ng-zorro-antd/typography';
 import { storageKey } from '../../core/constants/storage-keys';
 import { AiSocialAuthService } from '../../core/services/ai-social-auth.service';
 import { CountdownTimerComponent } from '../../shared/countdown-timer/countdown-timer.component';
-import { AppIcon } from '../../shared/icon/icon';
 
 @Component({
   selector: 'app-otp-auth',
   standalone: true,
-  imports: [
-    FormsModule,
-    NzFormDirective,
-    NzFormItemComponent,
-    NzFormLabelComponent,
-    NzFormControlComponent,
-    NzInputModule,
-    NzCheckboxComponent,
-    NzButtonComponent,
-    NzTypographyComponent,
-    CountdownTimerComponent,
-    AppIcon,
-  ],
+  imports: [FormsModule, NzButtonComponent, CountdownTimerComponent],
   templateUrl: './otp-auth.component.html',
   styleUrls: ['./otp-auth.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OtpAuthComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly location = inject(Location);
   private readonly titleService = inject(Title);
@@ -45,9 +29,11 @@ export class OtpAuthComponent implements OnInit {
   private readonly responsive = inject(BreakpointObserver);
 
   private readonly otpExpireSeconds = 120;
+  readonly otpIndices = [0, 1, 2, 3, 4, 5];
 
   readonly phoneNumber = signal('');
   readonly phoneNumberHide = signal('');
+  readonly otpDigits = signal<string[]>(['', '', '', '', '', '']);
   readonly otp = signal('');
   readonly isCheckedButton = signal(true);
   readonly isLoggingIn = signal(false);
@@ -60,10 +46,15 @@ export class OtpAuthComponent implements OnInit {
 
   ngOnInit(): void {
     this.titleService.setTitle('Xác thực OTP | VNPT AI Social');
-    const savedPhone = localStorage.getItem(storageKey.phone) ?? '';
+    const queryPhone = this.route.snapshot.queryParamMap.get('phone')?.trim() || '';
+    const savedPhone = queryPhone || (localStorage.getItem(storageKey.phone) ?? '');
     if (!savedPhone) {
       this.router.navigate(['/login']);
       return;
+    }
+    localStorage.setItem(storageKey.phone, savedPhone);
+    if (!localStorage.getItem(storageKey.otpCreateDate)) {
+      localStorage.setItem(storageKey.otpCreateDate, DateTime.now().toISO()!);
     }
     this.phoneNumber.set(savedPhone);
     this.phoneNumberHide.set(
@@ -90,6 +81,49 @@ export class OtpAuthComponent implements OnInit {
     return Math.max(0, Math.floor(this.otpExpireSeconds - diff));
   }
 
+  onDigitInput(index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digit = input.value.replace(/\D/g, '').slice(-1);
+    input.value = digit;
+    const next = [...this.otpDigits()];
+    next[index] = digit;
+    this.otpDigits.set(next);
+    this.otp.set(next.join(''));
+    this.errorMsg.set('');
+
+    if (digit && index < 5) {
+      const nextEl = document.getElementById(`otp-box-${index + 1}`) as HTMLInputElement | null;
+      nextEl?.focus();
+      nextEl?.select();
+    }
+  }
+
+  onDigitKeyDown(index: number, event: KeyboardEvent): void {
+    if (event.key === 'Backspace' && !this.otpDigits()[index] && index > 0) {
+      const prevEl = document.getElementById(`otp-box-${index - 1}`) as HTMLInputElement | null;
+      prevEl?.focus();
+      prevEl?.select();
+    } else if (event.key === 'ArrowLeft' && index > 0) {
+      document.getElementById(`otp-box-${index - 1}`)?.focus();
+    } else if (event.key === 'ArrowRight' && index < 5) {
+      document.getElementById(`otp-box-${index + 1}`)?.focus();
+    }
+  }
+
+  onOtpPaste(event: ClipboardEvent): void {
+    event.preventDefault();
+    const pasted = (event.clipboardData?.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+    if (!pasted) return;
+    const next = ['', '', '', '', '', ''];
+    for (let i = 0; i < 6; i++) {
+      next[i] = pasted[i] || '';
+    }
+    this.otpDigits.set(next);
+    this.otp.set(next.join(''));
+    const focusIdx = Math.min(pasted.length, 5);
+    document.getElementById(`otp-box-${focusIdx}`)?.focus();
+  }
+
   onTick(event: { tick_count: number }): void {
     this.tick.set(event.tick_count);
   }
@@ -109,13 +143,13 @@ export class OtpAuthComponent implements OnInit {
     try {
       await this.authService.sendOtp(this.phoneNumber());
       localStorage.setItem(storageKey.otpCreateDate, DateTime.now().toISO()!);
+      this.otpDigits.set(['', '', '', '', '', '']);
+      this.otp.set('');
       this.timer.set(this.otpExpireSeconds);
       this.tick.set(this.otpExpireSeconds);
       this.timerChild()?.restart(this.otpExpireSeconds);
     } catch (e: any) {
-      this.errorMsg.set(
-        e?.error?.message || e?.error?.errors?.[0]?.message || e?.message || 'Lỗi gửi lại OTP.',
-      );
+      this.errorMsg.set(e?.error?.message || e?.message || 'Lỗi gửi lại OTP.');
     } finally {
       this.isLoggingIn.set(false);
     }
@@ -126,15 +160,10 @@ export class OtpAuthComponent implements OnInit {
       this.errorMsg.set('Mã OTP đã hết hạn! Vui lòng bấm Gửi lại mã OTP.');
       return;
     }
-    if (!this.otp().trim()) {
-      this.errorMsg.set('Vui lòng nhập mã OTP 6 chữ số!');
+    if (this.otp().trim().length < 6) {
+      this.errorMsg.set('Vui lòng nhập đầy đủ 6 chữ số OTP!');
       return;
     }
-    if (!navigator.onLine) {
-      this.errorMsg.set('Không có kết nối Internet! Vui lòng kiểm tra lại kết nối!');
-      return;
-    }
-
     this.errorMsg.set('');
     this.isLoggingIn.set(true);
     try {
@@ -144,28 +173,14 @@ export class OtpAuthComponent implements OnInit {
         this.isCheckedButton(),
       );
       if (loginResult?.error || !loginResult?.token) {
-        this.errorMsg.set(
-          loginResult?.error?.message ||
-            loginResult?.error?.errors?.[0]?.message ||
-            'Mã OTP không chính xác hoặc đã hết hạn.',
-        );
+        this.errorMsg.set(loginResult?.error?.message || 'Mã OTP không chính xác hoặc đã hết hạn.');
         return;
       }
-
-      if (!this.authService.session.hasAiSocialSession()) {
-        this.errorMsg.set(
-          'Tài khoản GoConnect chưa được ánh xạ mã nhân viên trên hệ thống VNPT AI Social.',
-        );
-        return;
-      }
-
-      const redirect = this.authService.redirectUrl || '/channels/truyenthong';
+      const redirect = this.authService.redirectUrl || '/home';
       this.authService.redirectUrl = null;
       await this.router.navigateByUrl(redirect);
     } catch (e: any) {
-      this.errorMsg.set(
-        e?.error?.message || e?.message || 'Xác thực OTP thất bại. Vui lòng thử lại.',
-      );
+      this.errorMsg.set(e?.error?.message || e?.message || 'Xác thực OTP thất bại.');
     } finally {
       this.isLoggingIn.set(false);
     }

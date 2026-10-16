@@ -111,57 +111,68 @@ export function getTargetAudienceLabel(post: PostModel): string {
 }
 
 export interface ComposerPayloadInput {
-  channelCode: string;
-  title: string;
-  body: string;
-  whatHappened: string;
-  actionRequired: string;
-  deadlineText: string;
-  eventLocation: string;
-  eventStartsAt: string;
-  eventEndsAt: string;
-  requireRegistration: boolean;
-  maxAttendees: number | null;
-  categoryCode: string;
-  chapterCode: string;
-  isMandatory: boolean;
-  audienceAll: boolean;
-  selectedUnitIds: string[];
-  hasPoll: boolean;
-  pollQuestion: string;
-  pollAllowMultiple: boolean;
-  pollOptions: string[];
-  attachments: AttachmentItem[];
+  channelCode: string; title: string; body: string; whatHappened: string;
+  actionRequired: string; deadlineText: string; eventLocation: string;
+  eventStartsAt: string; eventEndsAt: string; requireRegistration: boolean;
+  maxAttendees: number | null; categoryCode: string; chapterCode: string;
+  isMandatory: boolean; audienceAll: boolean; selectedUnitIds: string[];
+  hasPoll: boolean; pollQuestion: string; pollAllowMultiple: boolean;
+  pollOptions: string[]; attachments: AttachmentItem[];
+  scheduledPublishAt?: string | null;
+}
+
+export function getAttachmentMediaUrl(att: AttachmentItem): string {
+  return att.thumbnailUrl || att.downloadUrl || att.fileUrl || '';
 }
 
 export function buildComposerPostPayload(input: ComposerPayloadInput): Record<string, any> {
   const code = input.channelCode;
+  const trimmedWhat = input.whatHappened.trim() || input.body.trim() || input.title.trim();
+  const trimmedAction = input.actionRequired.trim();
+  const trimmedDeadline = input.deadlineText.trim();
+
   const contentPayload: Record<string, any> =
     code === 'khan'
       ? {
-          what: input.whatHappened.trim() || input.body.trim(),
-          action: input.actionRequired.trim(),
-          deadline: input.deadlineText.trim(),
-          body: input.body.trim(),
+          what: trimmedWhat,
+          action: trimmedAction || 'Xem hướng dẫn chi tiết và triển khai ngay.',
+          ...(trimmedDeadline ? { deadline: trimmedDeadline } : {}),
+          body: trimmedWhat,
         }
       : code === 'sukien'
         ? {
-            what: input.body.trim(),
+            what: input.body.trim() || input.title.trim(),
             when: input.eventStartsAt || '',
             where: input.eventLocation.trim(),
             body: input.body.trim(),
           }
         : { body: input.body.trim() };
 
+  const isAll = input.audienceAll || input.selectedUnitIds.length === 0;
+  const isUrgentKhan =
+    code === 'khan' &&
+    Boolean(input.categoryCode.trim() || trimmedDeadline || trimmedAction);
+  const isScheduled = Boolean(input.scheduledPublishAt);
+
   const payload: Record<string, any> = {
     channelCode: code,
     title: input.title.trim(),
     content: contentPayload,
-    status: 'published',
-    isMandatory: code === 'khan' ? true : input.isMandatory,
-    audienceAll: input.audienceAll,
-    audienceUnitIds: input.audienceAll ? [] : input.selectedUnitIds,
-    attachments: input.attachments,
+    status: isScheduled ? 'scheduled' : 'published',
+    ...(isScheduled ? { scheduledPublishAt: input.scheduledPublishAt } : {}),
+    isMandatory: code === 'khan' ? isUrgentKhan : input.isMandatory,
+    audienceAll: isAll,
+    audienceScope: isAll ? 'all' : 'department',
+    audienceUnitIds: isAll ? [] : input.selectedUnitIds,
+    targetUnitIds: isAll ? [] : input.selectedUnitIds,
+    attachments: input.attachments.map((a) => ({
+      id: a.id, fileName: a.fileName, fileUrl: a.fileUrl,
+      fileType: a.fileType, mimeType: a.fileType,
+      fileSize: a.fileSize, sizeBytes: a.fileSize,
+      s3Key: a.s3Key || a.fileUrl,
+      kind: a.kind === 'image' || a.kind === 'video' ? a.kind : 'file',
+      downloadUrl: a.downloadUrl,
+    })),
   };
 
   if (input.categoryCode) payload['categoryCode'] = input.categoryCode;
@@ -178,6 +189,7 @@ export function buildComposerPostPayload(input: ComposerPayloadInput): Record<st
       payload['poll'] = {
         question: input.pollQuestion.trim(),
         allowMultiple: input.pollAllowMultiple,
+        expiresAt: new Date(Date.now() + 7 * 86400000).toISOString(),
         options: validOpts.map((text) => ({ text })),
       };
     }

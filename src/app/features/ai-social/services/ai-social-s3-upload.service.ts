@@ -9,7 +9,7 @@ export interface ComposerPendingAttachment {
   fileName: string;
   fileSize: number;
   mimeType: string;
-  kind: 'image' | 'video' | 'document';
+  kind: 'image' | 'video' | 'file';
   previewUrl: string | null;
   progress: number;
   uploading: boolean;
@@ -27,16 +27,16 @@ const MAX_VIDEO_BYTES = 100 * 1024 * 1024; // 100 MB
 export class AiSocialS3UploadService {
   private readonly api = inject(AiSocialApiService);
 
-  detectKind(file: File): 'image' | 'video' | 'document' {
+  detectKind(file: File): 'image' | 'video' | 'file' {
     const mime = (file.type || '').toLowerCase();
     const name = file.name.toLowerCase();
-    if (mime.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/.test(name)) {
+    if (mime.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|heic)$/.test(name)) {
       return 'image';
     }
-    if (mime.startsWith('video/') || /\.(mp4|mov|webm)$/.test(name)) {
+    if (mime.startsWith('video/') || /\.(mp4|mov|webm|m4v)$/.test(name)) {
       return 'video';
     }
-    return 'document';
+    return 'file';
   }
 
   validateFile(file: File): string | null {
@@ -47,7 +47,7 @@ export class AiSocialS3UploadService {
     if (kind === 'video' && file.size > MAX_VIDEO_BYTES) {
       return `Video "${file.name}" vượt quá giới hạn 100MB.`;
     }
-    if (kind === 'document' && file.size > MAX_DOC_BYTES) {
+    if (kind === 'file' && file.size > MAX_DOC_BYTES) {
       return `Tệp "${file.name}" vượt quá giới hạn 50MB.`;
     }
     return null;
@@ -91,21 +91,22 @@ export class AiSocialS3UploadService {
     });
 
     await this.putBlobWithProgress(
-      presigned.uploadUrl,
+      presigned['uploadUrl'],
       pending.file,
       pending.mimeType,
       onProgress,
     );
 
-    const mediaId = presigned.mediaId || presigned.id || pending.localId;
-    const s3Key = presigned.s3Key || presigned.fileUrl || '';
+    const mediaId = presigned['mediaId'] || presigned['id'] || pending.localId;
+    const s3Key = presigned['s3Key'] || presigned['fileUrl'] || '';
 
     return {
       id: mediaId,
       fileName: pending.fileName,
-      fileUrl: presigned.fileUrl || s3Key,
+      fileUrl: presigned['fileUrl'] || s3Key,
       fileType: pending.mimeType,
       fileSize: pending.fileSize,
+      downloadUrl: presigned['downloadUrl'] || pending.previewUrl || undefined,
       s3Key,
       kind: pending.kind,
     };

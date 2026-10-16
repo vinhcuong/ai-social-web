@@ -1,0 +1,52 @@
+@if (visible()) {
+  <div class="emoji-popover-card" (click)="$event.stopPropagation()">
+    <!-- Top Search Bar (#Hình 2) -->
+    <div class="emoji-search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#8c94a1" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input
+        type="text"
+        class="emoji-search-input"
+        placeholder="Tìm kiếm emojis"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+      />
+      @if (searchQuery()) {
+        <button type="button" class="clear-search-btn" (click)="searchQuery.set('')">✕</button>
+      }
+    </div>
+
+    <!-- Category Tabs (#Hình 2) -->
+    @if (!searchQuery()) {
+      <div class="emoji-tabs-bar">
+        @for (cat of categories; track cat.id) {
+          <button
+            type="button"
+            class="tab-btn"
+            [class.active]="activeTabId() === cat.id"
+            [title]="cat.label"
+            (click)="activeTabId.set(cat.id)"
+          >
+            <span class="tab-icon">{{ cat.icon }}</span>
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Emoji Grid (8 columns) -->
+    <div class="emoji-grid-viewport">
+      @for (emoji of displayEmojis(); track $index) {
+        <button
+          type="button"
+          class="emoji-cell-btn"
+          [title]="emoji"
+          (click)="onSelectEmoji(emoji, $event)"
+        >
+          {{ emoji }}
+        </button>
+      }
+    </div>
+  </div>
+}

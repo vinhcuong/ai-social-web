@@ -1,0 +1,115 @@
+<aside class="event-sidebar-column">
+  <!-- Card 1: EventMonthCalendarCard -->
+  <section class="sidebar-card month-calendar-card">
+    <header class="cal-header">
+      <span class="cal-title">Tháng {{ currentMonth() }} / {{ currentYear() }}</span>
+      <div class="cal-nav-btns">
+        <button type="button" class="nav-btn" (click)="prevMonth()">‹</button>
+        <button type="button" class="nav-btn" (click)="nextMonth()">›</button>
+      </div>
+    </header>
+
+    <div class="cal-weekdays-grid">
+      @for (wd of weekDays; track wd) {
+        <span class="weekday-cell">{{ wd }}</span>
+      }
+    </div>
+
+    <div class="cal-days-grid">
+      @for (cell of calendarCells(); track cell.dateKey) {
+        <button
+          type="button"
+          class="day-cell"
+          [class.empty]="!cell.day"
+          [class.today]="cell.isToday"
+          [class.selected]="selectedDateKey() === cell.dateKey"
+          [disabled]="!cell.day"
+          (click)="selectDay(cell)"
+        >
+          @if (cell.day) {
+            <span class="day-num">{{ cell.day }}</span>
+            @if (cell.dots.length) {
+              <span class="day-dots">
+                @for (dot of cell.dots; track $index) {
+                  <i class="dot" [style.background-color]="dot"></i>
+                }
+              </span>
+            }
+          }
+        </button>
+      }
+    </div>
+
+    <div class="cal-legends-grid">
+      @for (leg of legends; track leg.label) {
+        <div class="legend-item">
+          <span class="legend-dot" [style.background-color]="leg.color"></span>
+          <span class="legend-text">{{ leg.label }}</span>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Card 2: EventMonthlyScheduleCard ("THÁNG X") -->
+  <section class="sidebar-card monthly-schedule-card">
+    <img
+      src="assets/ai-social/home/thong-tin-su-kien.png"
+      alt="Sự kiện tháng"
+      class="floating-month-3d"
+    />
+
+    <header class="monthly-header">
+      <div class="monthly-icon-box">
+        <img
+          src="assets/ai-social/home/ic-calendar-upcoming-box.svg"
+          alt=""
+          width="20"
+          height="20"
+        />
+      </div>
+      <span class="monthly-heading">LỊCH SỰ KIỆN THÁNG {{ currentMonth() }}</span>
+    </header>
+
+    <div class="monthly-days-box">
+      @for (group of scheduleGroups(); track group.dateRangeLabel) {
+        <div class="monthly-day-row">
+          <div class="m-date">{{ group.dateRangeLabel }}</div>
+          <div class="m-events">
+            @for (ev of group.events; track ev.id) {
+              <button
+                type="button"
+                class="m-event-btn"
+                (click)="scheduleEventClicked.emit(ev)"
+              >
+                <span class="m-dot" [style.background-color]="ev.dotColor"></span>
+                <span class="m-title">{{ ev.title }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Card 3: EventYearHeatmapWidget -->
+  <section class="sidebar-card year-heatmap-card">
+    <header class="cal-header">
+      <span class="cal-title">Tổng quan sự kiện Năm {{ currentYear() }}</span>
+    </header>
+
+    <div class="heatmap-months-grid">
+      @for (ym of yearMonths; track ym.month) {
+        <button
+          type="button"
+          class="heatmap-month-box"
+          [class.active]="currentMonth() === ym.month"
+          [attr.data-level]="ym.level"
+          (click)="selectMonthFromHeatmap(ym.month)"
+        >
+          <span class="hm-name">{{ ym.label }}</span>
+          <span class="hm-count">{{ ym.count }} sự kiện</span>
+        </button>
+      }
+    </div>
+  </section>
+</aside>

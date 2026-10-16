@@ -3,8 +3,15 @@ import { Routes } from '@angular/router';
 export const AI_SOCIAL_ROUTES: Routes = [
   {
     path: '',
-    redirectTo: 'channels/truyenthong',
     pathMatch: 'full',
+    redirectTo: 'home',
+  },
+  {
+    path: 'home',
+    loadComponent: () =>
+      import('./views/home-page/ai-social-home-page.component').then(
+        (m) => m.AiSocialHomePageComponent,
+      ),
   },
   {
     path: 'channels/:channelCode',
@@ -14,14 +21,14 @@ export const AI_SOCIAL_ROUTES: Routes = [
       ),
   },
   {
-    path: 'posts/:postId',
+    path: 'posts/by-code/:code',
     loadComponent: () =>
       import('./views/post-detail/post-detail.component').then(
         (m) => m.PostDetailComponent,
       ),
   },
   {
-    path: 'r/p/:code',
+    path: 'posts/:postId',
     loadComponent: () =>
       import('./views/post-detail/post-detail.component').then(
         (m) => m.PostDetailComponent,

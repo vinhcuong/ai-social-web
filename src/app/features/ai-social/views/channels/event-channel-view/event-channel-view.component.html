@@ -1,0 +1,183 @@
+<div class="event-channel-page">
+  <div class="event-container">
+    <header class="event-page-header-card">
+      <div class="header-top-row">
+        <a [routerLink]="['/home']" class="back-home-btn" title="Về trang chủ AI Social">←</a>
+        <img src="assets/ai-social/home/thong-tin-su-kien.png" alt="Thông tin sự kiện" class="header-icon" />
+        <div class="header-titles">
+          <h1>Thông tin sự kiện công ty</h1>
+          <p>Lịch sự kiện, thông báo nhân sự, đào tạo nội bộ, lịch nghỉ lễ</p>
+        </div>
+      </div>
+
+      <nav class="event-filter-tabs-bar">
+        @for (tab of filterTabs; track tab.code) {
+          <button
+            type="button"
+            class="filter-tab-item"
+            [class.active]="activeTabCode() === tab.code"
+            (click)="activeTabCode.set(tab.code)"
+          >
+            {{ tab.label }}
+          </button>
+        }
+      </nav>
+    </header>
+
+    <div class="event-two-col-layout">
+      <div class="event-feed-column">
+        <div class="event-search-bar">
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Tìm kiếm sự kiện, khoá đào tạo, lịch nghỉ..."
+            [ngModel]="searchText()"
+            (ngModelChange)="searchText.set($event)"
+          />
+          @if (selectedDateKey(); as dateKey) {
+            <button type="button" class="date-filter-chip" (click)="selectedDateKey.set('')">
+              📅 Ngày {{ dateKey }} ✕
+            </button>
+          }
+        </div>
+
+        <app-inline-composer-card
+          channelCode="sukien"
+          [categories]="categories()"
+          (postCreated)="postCreated.emit($event)"
+        />
+
+        <div class="event-posts-list">
+          @for (post of filteredPosts(); track post.id) {
+            <article class="event-post-card" [id]="'post-' + post.id" [class.highlighted]="highlightId() === post.id">
+              <div class="ev-post-header">
+                <div class="ev-avatar">{{ (post.authorName || 'V')[0] }}</div>
+                <div class="ev-author-meta">
+                  <div class="ev-author-row">
+                    <strong>{{ post.authorName || 'Ban Tổ chức Sự kiện VNPT' }}</strong>
+                    <span class="ev-cat-pill" [attr.data-cat]="post.categoryCode">
+                      {{ getCategoryPillLabel(post.categoryCode) }}
+                    </span>
+                    @if (post.pinnedAt) {
+                      <span class="pin-badge">📌 Ghim</span>
+                    }
+                  </div>
+                  <div class="ev-time">{{ formatTime(post.publishedAt || post.createdAt) }}</div>
+                </div>
+                <button type="button" class="share-btn" title="Chia sẻ" (click)="shareRequested.emit(post)">
+                  <img src="assets/ai-social/share-03.svg" alt="Chia sẻ" width="16" height="16" />
+                </button>
+              </div>
+
+              @if (post.lastMinorEditNote) {
+                <div class="minor-edit-callout">
+                  <strong>Cập nhật nội dung:</strong> {{ post.lastMinorEditNote }}
+                </div>
+              }
+
+              <h2 class="ev-post-title">{{ post.title }}</h2>
+              <p class="ev-post-body">{{ getBodyText(post) }}</p>
+
+              <div class="ev-schedule-meta-box">
+                @if (getWhenText(post); as whenStr) {
+                  <div class="meta-line">
+                    <span class="meta-icon">📅</span>
+                    <span><strong>Thời gian:</strong> {{ whenStr }}</span>
+                  </div>
+                }
+                @if (getWhereText(post); as whereStr) {
+                  <div class="meta-line">
+                    <span class="meta-icon">📍</span>
+                    <span><strong>Địa điểm:</strong> {{ whereStr }}</span>
+                  </div>
+                }
+                @if (getJoinLink(post); as linkUrl) {
+                  <div class="meta-line">
+                    <span class="meta-icon">👉</span>
+                    <a [href]="linkUrl" target="_blank" rel="noopener" class="join-link">
+                      Link tham dự / Chi tiết chương trình ({{ linkUrl }})
+                    </a>
+                  </div>
+                }
+              </div>
+
+              @if (getMediaAttachments(post); as mediaList) {
+                @if (mediaList.length > 0) {
+                  <div class="ev-media-grid" [attr.data-count]="mediaList.length > 4 ? 4 : mediaList.length">
+                    @for (media of mediaList.slice(0, 4); track media.id; let idx = $index) {
+                      <div class="media-tile">
+                        <app-media-tile
+                          [media]="media"
+                          [moreCount]="idx === 3 && mediaList.length > 4 ? mediaList.length - 4 : 0"
+                          (mediaClick)="openMedia(post, idx)"
+                        />
+                      </div>
+                    }
+                  </div>
+                }
+              }
+
+              @if (getDocumentAttachments(post); as docList) {
+                @if (docList.length) {
+                  <div class="ev-attachments-row">
+                    @for (att of docList; track att.id) {
+                      <button type="button" class="att-item" (click)="openAttachment(att)">
+                        <img src="assets/ai-social/file-pdf.svg" alt="" width="16" height="16" />
+                        <span>{{ att.fileName }}</span>
+                        <small>({{ formatSize(att.fileSize) }})</small>
+                      </button>
+                    }
+                  </div>
+                }
+              }
+
+              <footer class="ev-post-footer">
+                <div class="footer-tier-actions">
+                  <div class="left-reactions">
+                    <button type="button" class="heart-btn" [class.active]="post.isHearted" (click)="onToggleHeart(post)">
+                      ❤️ {{ post.heartCount || 0 }} Quan tâm
+                    </button>
+                    @if (post.requireRegistration) {
+                      <span class="reg-count-pill">
+                        👥 Đã đăng ký: <strong>{{ post.registeredCount || 0 }}</strong>
+                        @if (post.maxAttendees) { / {{ post.maxAttendees }} }
+                      </span>
+                    }
+                  </div>
+
+                  @if (post.requireRegistration) {
+                    <button
+                      type="button"
+                      nz-button
+                      [nzType]="post.isRegistered ? 'default' : 'primary'"
+                      [nzLoading]="rsvpLoadingId() === post.id"
+                      (click)="onToggleRsvp(post)"
+                    >
+                      {{ post.isRegistered ? '✓ Đã đăng ký (Hủy)' : 'Đăng ký ngay' }}
+                    </button>
+                  }
+                </div>
+
+                <div class="footer-tier-stats">
+                  <span><strong>{{ post.readCount || 0 }}</strong> / {{ post.recipientCount || 2450 }} đã đọc</span>
+                  <button type="button" class="detail-list-btn" (click)="statsRequested.emit(post)">
+                    • Danh sách chi tiết &amp; Thống kê đăng ký
+                  </button>
+                </div>
+              </footer>
+            </article>
+          } @empty {
+            <div class="empty-events-box">Không có sự kiện nào khớp với bộ lọc hiện tại.</div>
+          }
+        </div>
+      </div>
+
+      <app-event-sidebar-calendar
+        [scheduleGroups]="scheduleGroups()"
+        [selectedDateKey]="selectedDateKey()"
+        (dateSelected)="selectedDateKey.set($event)"
+        (scheduleEventClicked)="onScheduleItemClick($event)"
+      />
+    </div>
+  </div>
+</div>

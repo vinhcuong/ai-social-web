@@ -8,7 +8,10 @@ import {
   NotificationItem,
   PostModel,
 } from '../../../core/models/ai-social.models';
+import { UpcomingScheduleDayGroup } from '../../../core/models/ai-social-extended.models';
 import { AiSocialApiService } from './ai-social-api.service';
+import { SEED_BADGE_COUNTS, SEED_UPCOMING_SCHEDULE } from './ai-social-seed-meta.data';
+import { SEED_ACTIVE_EMERGENCY_POST } from './ai-social-seed-posts.data';
 import { AiSocialSocketService } from './ai-social-socket.service';
 
 @Injectable({
@@ -19,10 +22,13 @@ export class AiSocialStateService {
   private readonly socket = inject(AiSocialSocketService);
 
   readonly activeChannel = signal<ChannelCode>('truyenthong');
-  readonly badges = signal<BadgeCounts>({ khan: 0, sukien: 0, truyenthong: 0, sotay: 0 });
+  readonly badges = signal<BadgeCounts>({ ...SEED_BADGE_COUNTS });
   readonly myProgress = signal<MyProgressResponse | null>(null);
   readonly notifications = signal<NotificationItem[]>([]);
-  readonly unreadNotificationCount = signal<number>(0);
+  readonly unreadNotificationCount = signal<number>(2);
+
+  readonly syncedEmergencyPost = signal<PostModel | null>(SEED_ACTIVE_EMERGENCY_POST);
+  readonly upcomingSchedule = signal<UpcomingScheduleDayGroup[]>(SEED_UPCOMING_SCHEDULE);
 
   readonly posts = signal<PostModel[]>([]);
   readonly loadingPosts = signal<boolean>(false);
@@ -36,11 +42,12 @@ export class AiSocialStateService {
   readonly handbookChapters = signal<HandbookTocChapter[]>([]);
   readonly loadingHandbook = signal<boolean>(false);
 
-  readonly activeEmergencyPost = computed(() =>
-    this.posts().find(
+  readonly activeEmergencyPost = computed(() => {
+    const fromFeed = this.posts().find(
       (p) => p.channelCode === 'khan' && p.status === 'published' && !p.isRead && !p.endedAt,
-    ) || null,
-  );
+    );
+    return fromFeed || this.syncedEmergencyPost();
+  });
 
   constructor() {
     this.bindRealtimeEvents();
@@ -80,6 +87,9 @@ export class AiSocialStateService {
           p.id === postId ? { ...p, status: 'ended', endedAt: new Date().toISOString() } : p,
         ),
       );
+      if (this.syncedEmergencyPost()?.id === postId) {
+        this.syncedEmergencyPost.set(null);
+      }
     });
 
     this.socket.notificationNew$.subscribe(() => {
@@ -90,10 +100,14 @@ export class AiSocialStateService {
 
   async refreshBadges(): Promise<void> {
     try {
+      const syncData = await this.api.getSync();
+      if (syncData?.badges) this.badges.set(syncData.badges);
+      if (syncData?.activeEmergency !== undefined) {
+        this.syncedEmergencyPost.set(syncData.activeEmergency);
+      }
+    } catch {
       const counts = await this.api.getBadges();
       if (counts) this.badges.set(counts);
-    } catch {
-      // ignore background badge error
     }
   }
 
@@ -101,9 +115,7 @@ export class AiSocialStateService {
     try {
       const prog = await this.api.getMyProgress();
       if (prog) this.myProgress.set(prog);
-    } catch {
-      // ignore
-    }
+    } catch {}
   }
 
   async refreshNotifications(): Promise<void> {
@@ -113,9 +125,7 @@ export class AiSocialStateService {
       this.unreadNotificationCount.set(
         res?.unreadCount ?? (res?.items || []).filter((n) => !n.isSeen).length,
       );
-    } catch {
-      // ignore
-    }
+    } catch {}
   }
 
   async loadChannelPosts(channelCode: ChannelCode, resetFilter = true): Promise<void> {
@@ -175,6 +185,9 @@ export class AiSocialStateService {
 
   updatePostInList(updated: PostModel): void {
     this.posts.update((list) => list.map((p) => (p.id === updated.id ? updated : p)));
+    if (this.syncedEmergencyPost()?.id === updated.id) {
+      this.syncedEmergencyPost.set(updated);
+    }
   }
 
   prependPost(created: PostModel): void {

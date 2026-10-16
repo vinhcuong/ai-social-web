@@ -1,0 +1,330 @@
+.schedule-modal-dialog {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+.schedule-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .schedule-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #000a1a;
+    margin: 0;
+  }
+
+  .close-btn {
+    border: none;
+    background: transparent;
+    color: #667183;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    &:hover { background: #f1f5f9; color: #000a1a; }
+  }
+}
+
+.schedule-notice-banner {
+  background: #dbe9ff;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .banner-icon { flex-shrink: 0; }
+  .banner-text {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #000a1a;
+    line-height: 20px;
+  }
+}
+
+.schedule-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .form-label {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #000a1a;
+  }
+}
+
+.field-with-popover-wrap {
+  position: relative;
+}
+
+.composite-input-field {
+  display: flex;
+  align-items: center;
+  height: 42px;
+  padding: 0 12px;
+  background: #ffffff;
+  border: 1px solid #ccd0d5;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: #0057e5;
+  }
+
+  .segment-part {
+    font-size: 14px;
+    color: #404d64;
+    strong { color: #000a1a; font-weight: 600; }
+  }
+
+  .divider {
+    margin: 0 8px;
+    color: #b3b8c1;
+  }
+
+  .trailing-icon-btn {
+    margin-left: auto;
+    border: none;
+    background: transparent;
+    color: #0057e5;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+  }
+}
+
+.calendar-popover-box {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 1070;
+  width: 320px;
+  background: #ffffff;
+  border: 1px solid #e6e8eb;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
+  padding: 14px;
+  box-sizing: border-box;
+
+  .cal-nav-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f1f5f9;
+
+    .nav-arrow-btn {
+      width: 28px;
+      height: 28px;
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      &:hover { background: #f8fafc; color: #0057e5; }
+    }
+
+    .nav-month-title {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: #1a2a45;
+    }
+  }
+
+  .cal-weekdays-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    padding: 8px 0 4px;
+    font-size: 12px;
+    color: #8c94a1;
+    font-weight: 600;
+  }
+
+  .cal-days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+
+    .cal-day-cell {
+      height: 34px;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #1a2a45;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover:not(.is-selected) {
+        background: #f1f5f9;
+      }
+
+      &.out-month {
+        color: #8c94a1;
+        opacity: 0.5;
+      }
+
+      &.is-today {
+        background: #f0f6ff;
+        color: #0057e5;
+        font-weight: 600;
+      }
+
+      &.is-selected {
+        background: #0057e5;
+        color: #ffffff;
+        font-weight: 600;
+        border-radius: 50%;
+      }
+    }
+  }
+}
+
+.time-picker-popover-box {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 1070;
+  width: 230px;
+  background: #ffffff;
+  border: 1px solid #e6e8eb;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
+  padding: 12px;
+  box-sizing: border-box;
+
+  .time-columns-container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 8px;
+
+    .time-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      .col-title {
+        font-size: 11.5px;
+        color: #8c94a1;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+
+      .col-scroll {
+        max-height: 160px;
+        overflow-y: auto;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+
+        .time-item-btn {
+          width: 100%;
+          padding: 4px 0;
+          border: none;
+          background: transparent;
+          border-radius: 4px;
+          font-size: 13.5px;
+          color: #404d64;
+          cursor: pointer;
+
+          &:hover { background: #f8fafc; }
+          &.active {
+            background: #f0f6ff;
+            color: #0057e5;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+
+    .col-divider {
+      font-size: 16px;
+      font-weight: 700;
+      color: #667183;
+      padding-top: 24px;
+    }
+  }
+
+  .time-picker-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #f1f5f9;
+
+    .time-cancel-btn {
+      padding: 4px 10px;
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .time-done-btn {
+      padding: 4px 12px;
+      border: none;
+      background: #0057e5;
+      color: #ffffff;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  }
+}
+
+.schedule-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid #e6e8eb;
+
+  .clear-schedule-btn {
+    padding: 7px 14px;
+    border: 1px solid #fecdd3;
+    background: #fff1f2;
+    color: #e11d48;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    &:hover { background: #ffe4e6; }
+  }
+
+  .left-note {
+    font-size: 12.5px;
+    color: #667183;
+  }
+
+  .confirm-btn {
+    min-width: 120px;
+    padding: 8px 16px;
+    background: #0057e5;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    &:hover { background: #0047bf; }
+  }
+}

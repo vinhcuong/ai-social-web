@@ -9,27 +9,17 @@ import { AiSocialHostBridgeService } from '../../../../core/services/ai-social-h
 import { AppIcon } from '../../../../shared/icon/icon';
 import { AiSocialApiService } from '../../services/ai-social-api.service';
 import {
-  extractPostMarkdownBody,
-  formatFileSize,
-  formatRelativeDate,
-  getTargetAudienceLabel,
-  isImageAttachment,
-  isVideoAttachment,
-  renderMarkdownToHtml,
+  extractPostMarkdownBody, formatFileSize, formatRelativeDate,
+  getTargetAudienceLabel, isImageAttachment, isVideoAttachment, renderMarkdownToHtml,
 } from '../../utils/post-format.util';
 import { EventRsvpCardComponent } from '../event-rsvp-card/event-rsvp-card.component';
+import { MediaTileComponent } from '../media-tile/media-tile.component';
 import { PollCardComponent } from '../poll-card/poll-card.component';
 
 @Component({
   selector: 'app-post-card',
   standalone: true,
-  imports: [
-    RouterLink,
-    NzButtonComponent,
-    AppIcon,
-    PollCardComponent,
-    EventRsvpCardComponent,
-  ],
+  imports: [RouterLink, NzButtonComponent, AppIcon, PollCardComponent, EventRsvpCardComponent, MediaTileComponent],
   templateUrl: './post-card.component.html',
   styleUrls: ['./post-card.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -98,7 +88,12 @@ export class PostCardComponent {
   }
 
   openDocument(att: AttachmentItem): void {
-    this.bridge.openFileViewer(att.downloadUrl || att.fileUrl, att.fileName);
+    const url = att.downloadUrl || att.fileUrl;
+    if (!url) {
+      this.message.warning('Tệp đính kèm không khả dụng hoặc liên kết đã hết hạn.');
+      return;
+    }
+    this.bridge.openFileViewer(url, att.fileName);
   }
 
   async onAckRead(): Promise<void> {

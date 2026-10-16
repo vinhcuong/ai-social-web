@@ -1,297 +1,197 @@
 @if (canPublish()) {
-  <section class="composer-card">
-    @if (!expanded()) {
-      <div class="composer-collapsed" (click)="expanded.set(true)">
-        <div class="composer-avatar">+</div>
-        <div class="composer-Trigger-placeholder">
-          @if (channelCode() === 'khan') {
-            Phát thông báo khẩn cấp mới tới đơn vị / toàn Tập đoàn...
-          } @else if (channelCode() === 'sukien') {
-            Tạo thông báo sự kiện công ty hoặc mở đăng ký tham dự...
-          } @else if (channelCode() === 'sotay') {
-            Thêm mục Sổ tay văn hoá hoặc đính kèm tài liệu PDF...
-          } @else {
-            Chia sẻ bản tin Truyền thông nội bộ mới...
-          }
-        </div>
-        <button type="button" nz-button nzType="primary">Soạn bài</button>
-      </div>
-    } @else {
-      <div class="composer-expanded">
-        <div class="composer-head">
-          <h4>
-            @if (channelCode() === 'khan') {
-              🚨 Phát Thông Báo Khẩn
-            } @else if (channelCode() === 'sukien') {
-              📅 Tạo Sự Kiện Công Ty
-            } @else if (channelCode() === 'sotay') {
-              📘 Đăng Bài Sổ Tay Văn Hoá
-            } @else {
-              📰 Đăng Tin Truyền Thông Nội Bộ
-            }
-          </h4>
-          <button type="button" class="close-btn" (click)="expanded.set(false)">✕</button>
-        </div>
+  <section class="composer-card" [class.is-expanded]="expanded()">
+    <!-- Row 1: Author Avatar + Inline Input (#4257:85484) -->
+    <div class="composer-author-row">
+      <img src="assets/ai-social/emergency/composer-avatar.png" alt="AI Social Composer" class="composer-avatar" />
+      <input
+        type="text"
+        class="composer-inline-input"
+        [placeholder]="expanded() ? 'Tiêu đề thông báo...' : 'Viết thông báo'"
+        [ngModel]="title()"
+        (ngModelChange)="title.set($event)"
+        (focus)="expanded.set(true); activeField.set('title')"
+      />
+      @if (expanded()) {
+        <button type="button" class="collapse-composer-btn" title="Thu gọn" (click)="expanded.set(false)">✕</button>
+      }
+    </div>
 
-        <div class="form-grid">
-          <input
-            nz-input
-            placeholder="Tiêu đề bài viết / thông báo *"
-            class="title-input"
-            [ngModel]="title()"
-            (ngModelChange)="title.set($event)"
-          />
-
-          @if (categories().length > 0) {
-            <div class="field-row">
-              <label>Chuyên mục:</label>
-              <select
-                class="native-select"
-                [ngModel]="categoryCode()"
-                (ngModelChange)="categoryCode.set($event)"
-              >
-                <option value="">-- Chọn chuyên mục --</option>
-                @for (cat of categories(); track cat.code) {
-                  <option [value]="cat.code">{{ cat.name }}</option>
-                }
-              </select>
-            </div>
-          }
-
-          @if (channelCode() === 'khan') {
+    <!-- Expandable Structured Fields -->
+    @if (expanded()) {
+      <div class="composer-expandable-area">
+        @if (channelCode() === 'khan') {
+          <div class="structured-field-group">
+            <label class="field-caption">NỘI DUNG / HIỆN TRẠNG *</label>
             <textarea
-              nz-input
-              rows="2"
-              placeholder="Chuyện gì đang xảy ra? (Tóm tắt tình huống khẩn cấp)"
+              class="borderless-textarea"
+              placeholder="Mô tả nội dung thông báo, diễn biến hoặc sự cố đang xảy ra..."
               [ngModel]="whatHappened()"
               (ngModelChange)="whatHappened.set($event)"
+              (input)="onAutoGrow($event)"
+              (focus)="activeField.set('what')"
             ></textarea>
+          </div>
+
+          <div class="structured-field-group">
+            <label class="field-caption">CẦN LÀM NGAY (NẾU CÓ)</label>
             <textarea
-              nz-input
-              rows="2"
-              placeholder="Hành động cần thực hiện ngay *"
+              class="borderless-textarea"
+              placeholder="Chỉ đạo khẩn cấp, hướng dẫn thực hiện cho CBNV..."
               [ngModel]="actionRequired()"
               (ngModelChange)="actionRequired.set($event)"
+              (input)="onAutoGrow($event)"
+              (focus)="activeField.set('action')"
             ></textarea>
-            <input
-              nz-input
-              placeholder="Hạn chót xác nhận (VD: Trước 17:00 hôm nay)"
-              [ngModel]="deadlineText()"
-              (ngModelChange)="deadlineText.set($event)"
-            />
-          }
+          </div>
+        } @else {
+          <div class="structured-field-group">
+            <textarea
+              class="borderless-textarea"
+              placeholder="Nhập nội dung chi tiết bài viết..."
+              [ngModel]="body()"
+              (ngModelChange)="body.set($event)"
+              (input)="onAutoGrow($event)"
+              (focus)="activeField.set('body')"
+            ></textarea>
+          </div>
+        }
 
-          @if (channelCode() === 'sukien') {
-            <div class="two-col-row">
-              <div>
-                <label class="mini-label">Thời gian bắt đầu</label>
-                <input
-                  type="datetime-local"
-                  nz-input
-                  [ngModel]="eventStartsAt()"
-                  (ngModelChange)="eventStartsAt.set($event)"
-                />
-              </div>
-              <div>
-                <label class="mini-label">Thời gian kết thúc</label>
-                <input
-                  type="datetime-local"
-                  nz-input
-                  [ngModel]="eventEndsAt()"
-                  (ngModelChange)="eventEndsAt.set($event)"
-                />
-              </div>
-            </div>
-            <input
-              nz-input
-              placeholder="Địa điểm tổ chức / Link phòng họp trực tuyến"
-              [ngModel]="eventLocation()"
-              (ngModelChange)="eventLocation.set($event)"
-            />
-            <div class="event-reg-row">
-              <label
-                nz-checkbox
-                [ngModel]="requireRegistration()"
-                (ngModelChange)="requireRegistration.set($event)"
-              >
-                Mở đăng ký tham dự sự kiện
-              </label>
-              @if (requireRegistration()) {
-                <input
-                  type="number"
-                  nz-input
-                  class="max-attendees-input"
-                  placeholder="Số lượng tối đa (tùy chọn)"
-                  [ngModel]="maxAttendees()"
-                  (ngModelChange)="maxAttendees.set($event)"
-                />
+        @if (channelCode() === 'khan' || showTagPicker()) {
+          <div class="hashtag-selector-block">
+            <div class="hashtag-header">
+              <span>Phân loại thông báo:</span>
+              @if (categoryCode()) {
+                <button type="button" class="clear-tag-btn" (click)="categoryCode.set('')">Bỏ chọn</button>
               }
             </div>
-          }
+            <div class="hashtag-chips-row">
+              @for (tag of emergencyTags; track tag.code) {
+                <button
+                  type="button"
+                  class="hashtag-chip"
+                  [class.selected]="categoryCode() === tag.code"
+                  (click)="categoryCode.set(categoryCode() === tag.code ? '' : tag.code)"
+                >
+                  # {{ tag.label }}
+                </button>
+              }
+            </div>
+          </div>
+        }
 
-          <textarea
-            nz-input
-            rows="4"
-            placeholder="Nội dung chi tiết bài viết (hỗ trợ định dạng Markdown)..."
-            [ngModel]="body()"
-            (ngModelChange)="body.set($event)"
-          ></textarea>
+        @if (scheduledDate(); as sched) {
+          <div class="schedule-active-strip">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#0057e5" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span class="chip-label">Lên lịch phát:</span>
+            <strong class="chip-time">{{ formatScheduledText(sched) }}</strong>
+            <button type="button" class="chip-edit-btn" (click)="showScheduleModal.set(true)">Sửa</button>
+            <button type="button" class="chip-remove-btn" title="Xoá lịch hẹn" (click)="scheduledDate.set(null)">✕</button>
+          </div>
+        }
 
-          <!-- Target Audience -->
-          <div class="audience-section">
-            <label
-              nz-checkbox
-              [ngModel]="audienceAll()"
-              (ngModelChange)="audienceAll.set($event)"
-            >
-              Gửi tới toàn công ty
-            </label>
+        @if (showAudiencePicker()) {
+          <div class="audience-picker-box">
+            <label nz-checkbox [ngModel]="audienceAll()" (ngModelChange)="audienceAll.set($event)">Gửi tới Toàn công ty</label>
             @if (!audienceAll() && availableUnits().length > 0) {
               <div class="unit-chips">
                 @for (unit of availableUnits(); track unit.id) {
-                  <button
-                    type="button"
-                    class="unit-chip"
-                    [class.active]="selectedUnitIds().includes(unit.id)"
-                    (click)="toggleUnit(unit.id)"
-                  >
-                    {{ unit.name }}
-                  </button>
+                  <button type="button" class="unit-chip" [class.active]="selectedUnitIds().includes(unit.id)" (click)="toggleUnit(unit.id)">{{ unit.name }}</button>
                 }
               </div>
             }
-
-            @if (channelCode() !== 'khan') {
-              <label
-                nz-checkbox
-                [ngModel]="isMandatory()"
-                (ngModelChange)="isMandatory.set($event)"
-              >
-                Yêu cầu nhân sự xác nhận đã đọc (Bắt buộc đọc)
-              </label>
-            }
           </div>
-
-          <!-- Optional Poll Builder -->
-          @if (hasPoll()) {
-            <div class="poll-builder">
-              <div class="poll-builder-head">
-                <strong>Tạo khảo sát bình chọn (Poll)</strong>
-                <button type="button" class="text-btn" (click)="hasPoll.set(false)">Xóa khảo sát</button>
-              </div>
-              <input
-                nz-input
-                placeholder="Câu hỏi khảo sát *"
-                [ngModel]="pollQuestion()"
-                (ngModelChange)="pollQuestion.set($event)"
-              />
-              @for (opt of pollOptions(); track $index; let i = $index) {
-                <div class="poll-opt-row">
-                  <input
-                    nz-input
-                    [placeholder]="'Phương án ' + (i + 1)"
-                    [ngModel]="opt"
-                    (ngModelChange)="updatePollOption(i, $event)"
-                  />
-                  @if (pollOptions().length > 2) {
-                    <button type="button" class="remove-opt-btn" (click)="removePollOption(i)">✕</button>
-                  }
-                </div>
-              }
-              <div class="poll-builder-foot">
-                <button type="button" nz-button nzSize="small" (click)="addPollOption()">
-                  + Thêm phương án
-                </button>
-                <label
-                  nz-checkbox
-                  [ngModel]="pollAllowMultiple()"
-                  (ngModelChange)="pollAllowMultiple.set($event)"
-                >
-                  Cho phép chọn nhiều
-                </label>
-              </div>
-            </div>
-          }
-
-          <!-- Pending Attachments Preview -->
-          @if (attachments().length > 0) {
-            <div class="attachment-preview-strip">
-              @for (att of attachments(); track att.localId) {
-                <div class="preview-item">
-                  @if (att.kind === 'image' && att.previewUrl) {
-                    <img [src]="att.previewUrl" [alt]="att.fileName" />
-                  } @else {
-                    <div class="file-badge">
-                      <app-icon name="file-02" [size]="20" />
-                    </div>
-                  }
-                  <div class="preview-info">
-                    <span class="name">{{ att.fileName }}</span>
-                    <span class="size">
-                      {{ sizeText(att.fileSize) }}
-                      @if (att.uploading) {
-                        · Đang tải lên {{ att.progress }}%
-                      }
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    class="remove-att-btn"
-                    [disabled]="submitting()"
-                    (click)="removeAttachment(att.localId)"
-                  >
-                    ✕
-                  </button>
-                </div>
-              }
-            </div>
-          }
-
-          <div class="composer-footer-bar">
-            <div class="attach-tools">
-              <label class="upload-trigger-btn">
-                <app-icon name="attachment_primary" [size]="18" />
-                <span>Đính kèm Ảnh / Video / PDF</span>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx"
-                  hidden
-                  (change)="onFilesSelected($event)"
-                />
-              </label>
-
-              @if (!hasPoll()) {
-                <button type="button" class="upload-trigger-btn" (click)="hasPoll.set(true)">
-                  <app-icon name="vote" [size]="18" />
-                  <span>Tạo bình chọn</span>
-                </button>
-              }
-            </div>
-
-            <div class="submit-tools">
-              <button
-                type="button"
-                nz-button
-                [disabled]="submitting()"
-                (click)="resetForm()"
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                nz-button
-                nzType="primary"
-                [nzDanger]="channelCode() === 'khan'"
-                [nzLoading]="submitting()"
-                (click)="submitPost()"
-              >
-                {{ channelCode() === 'khan' ? 'Phát thông báo khẩn' : 'Đăng bài viết' }}
-              </button>
-            </div>
-          </div>
-        </div>
+        }
       </div>
     }
+
+    @if (attachments().length > 0) {
+      <div class="composer-attachments-zone">
+        @if (mediaAttachments().length > 0) {
+          <div class="composer-media-strip">
+            @for (att of mediaAttachments(); track att.localId) {
+              <div class="media-thumb-card" [title]="att.fileName">
+                @if (att.kind === 'video') {
+                  <video [src]="att.previewUrl" class="thumb-media" muted playsinline></video>
+                  <span class="video-badge">▶ Video</span>
+                } @else {
+                  <img [src]="att.previewUrl" [alt]="att.fileName" class="thumb-media" />
+                }
+                @if (att.uploading) {
+                  <div class="upload-progress-mask">{{ att.progress }}%</div>
+                }
+                <button type="button" class="remove-thumb-btn" title="Xoá ảnh/video" [disabled]="submitting()" (click)="removeAttachment(att.localId)">✕</button>
+              </div>
+            }
+          </div>
+        }
+
+        @if (fileAttachments().length > 0) {
+          <div class="attachment-preview-strip">
+            @for (att of fileAttachments(); track att.localId) {
+              <div class="preview-file-box">
+                <img src="assets/ai-social/emergency/file-pdf-24.svg" alt="File" width="24" height="24" />
+                <div class="preview-file-meta">
+                  <div class="preview-file-name">{{ att.fileName }}</div>
+                  <div class="preview-file-size">{{ sizeText(att.fileSize) }}</div>
+                </div>
+                <button type="button" class="remove-att-btn" [disabled]="submitting()" (click)="removeAttachment(att.localId)">✕</button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Row 2: Bottom Action Toolbar (#4257:85490 — Always Visible) -->
+    <div class="composer-action-bar">
+      <div class="leading-tool-icons">
+        <label class="tool-icon-btn" title="Đính kèm tệp / PDF / ảnh">
+          <img src="assets/ai-social/emergency/composer-attachment-02.svg" alt="Đính kèm" width="20" height="20" />
+          <input type="file" multiple accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx" hidden (change)="onFilesSelected($event)" />
+        </label>
+
+        <button type="button" class="tool-icon-btn" [class.active]="showTagPicker() || !!categoryCode()" title="Gắn thẻ phân loại" (click)="toggleTagPicker()">
+          <img src="assets/ai-social/emergency/composer-tag-01.svg" alt="Phân loại" width="20" height="20" />
+        </button>
+
+        <div class="emoji-trigger-wrap">
+          <button type="button" class="tool-icon-btn" [class.active]="showEmojiPicker()" title="Chèn biểu tượng cảm xúc" (click)="showEmojiPicker.set(!showEmojiPicker())">
+            <img src="assets/ai-social/emergency/composer-smile.svg" alt="Emoji" width="20" height="20" />
+          </button>
+          <app-emoji-picker-popover [(visible)]="showEmojiPicker" (emojiSelect)="onPickEmoji($event)" />
+        </div>
+
+        <button type="button" class="tool-icon-btn" [class.active]="!!scheduledDate()" title="Lên lịch phát thông báo" (click)="showScheduleModal.set(true)">
+          <img src="assets/ai-social/emergency/composer-calendar-03.svg" alt="Lên lịch" width="20" height="20" />
+        </button>
+      </div>
+
+      <div class="trailing-tool-actions">
+        <button type="button" class="audience-pill-btn" title="Chọn đối tượng nhận thông báo" (click)="toggleAudiencePicker()">
+          <img src="assets/ai-social/emergency/composer-building-06.svg" alt="" width="20" height="20" />
+          <span>{{ audienceLabel() }}</span>
+        </button>
+        <span class="vertical-divider"></span>
+        <button type="button" class="add-circle-btn" title="Mở rộng / Thu gọn chi tiết thông báo" (click)="expanded.set(!expanded())">
+          <img src="assets/ai-social/emergency/composer-add-circle.svg" alt="Thêm" width="20" height="20" />
+        </button>
+        <button type="button" class="submit-post-btn" [class.ready]="canSubmit()" [disabled]="!canSubmit() || submitting()" (click)="submitPost()">
+          {{ submitting() ? 'Đang xử lý...' : submitButtonLabel() }}
+        </button>
+      </div>
+    </div>
   </section>
+
+  <!-- Figma Schedule Modal (#4496:33933) -->
+  <app-post-schedule-modal
+    [(visible)]="showScheduleModal"
+    [initialDate]="scheduledDate()"
+    (scheduleConfirmed)="scheduledDate.set($event)"
+    (scheduleCleared)="scheduledDate.set(null)"
+  />
 }

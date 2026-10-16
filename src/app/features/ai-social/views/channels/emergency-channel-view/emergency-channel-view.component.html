@@ -1,0 +1,191 @@
+<div class="emergency-channel-page">
+  <div class="emergency-main-container">
+    <!-- Figma Node #4257:65797: Channel Top Header -->
+    <header class="channel-figma-header">
+      <div class="header-left">
+        <a [routerLink]="['/home']" class="back-icon-btn" title="Về trang chủ AI Social">
+          <img src="assets/ai-social/emergency/arrow-left-01.svg" alt="Quay lại" width="24" height="24" />
+        </a>
+        <div class="header-titles">
+          <h1>Thông báo khẩn</h1>
+          <p>Sự cố, an ninh mạng, chỉ đạo gấp</p>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="brand-pill-badge">
+          <img src="assets/ai-social/logo.png" alt="VNPT AI Social" width="16" height="16" />
+          <span>VNPT AI Social</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Feed & Composer Column (680px centered per Figma #4257:65816) -->
+    <div class="emergency-feed-column">
+      <!-- Figma Node #4257:85483: Inline Composer Card (Hình 3) -->
+      <app-inline-composer-card channelCode="khan" [categories]="categories()" (postCreated)="postCreated.emit($event)" />
+
+      <!-- Emergency Post Feed (#4257:65817 & #4257:65852 — Hình 2) -->
+      @if (loading() && posts().length === 0) {
+        <div class="emergency-empty-box">Đang tải danh sách thông báo khẩn...</div>
+      } @else {
+        <div class="emergency-cards-list">
+          @for (post of posts(); track post.id) {
+            <article class="emergency-post-card" [id]="'post-' + post.id" [class.highlighted]="highlightId() === post.id">
+              <!-- Top Section: 110x110 Thumbnail + Right Column -->
+              <div class="emerg-top-row">
+                <div class="emerg-thumb-box">
+                  <img [src]="isUrgentBroadcast(post) ? 'assets/ai-social/emergency/tin-khan.png' : 'assets/ai-social/emergency/tin-thuong.png'" alt="Thông báo" class="emerg-thumb-img" />
+                </div>
+
+                <div class="emerg-head-content">
+                  <!-- Tag & Action Buttons Row (Top: Status, Audience, Share, Copy Link) -->
+                  <div class="emerg-tags-actions-row">
+                    <div class="emerg-tags-group">
+                      @if (isUrgentBroadcast(post)) {
+                        <span class="tag-pill broadcasting">
+                          <img src="assets/ai-social/emergency/megaphone-01.svg" alt="" width="16" height="16" />
+                          <span>Đang phát</span>
+                        </span>
+                      } @else if (isEnded(post)) {
+                        <span class="tag-pill ended">Đã kết thúc</span>
+                      }
+                      <span class="tag-pill audience">{{ getAudienceLabel(post) }}</span>
+                    </div>
+
+                    <div class="emerg-action-btns">
+                      <button type="button" class="outline-action-btn" (click)="shareRequested.emit(post)">
+                        <img src="assets/ai-social/emergency/share-03.svg" alt="" width="20" height="20" />
+                        <span>Chia sẻ</span>
+                      </button>
+
+                      <button type="button" class="outline-action-btn" (click)="copyPostLink(post)">
+                        <img src="assets/ai-social/emergency/link-04.svg" alt="" width="20" height="20" />
+                        <span>Copy link</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Title & Sub Row (#4257:65830 / #4257:65863) -->
+                  <div class="emerg-title-sub-group">
+                    <h2 class="emerg-title">{{ post.title }}</h2>
+                    <div class="emerg-sub-meta">
+                      @if (isUrgentBroadcast(post) && getDeadlineText(post)) {
+                        <span class="sub-val">Phát lúc {{ formatClock(post.publishedAt || post.createdAt) }}</span>
+                        <span class="sub-dot"></span>
+                        <span class="sub-val">Đọc xong trước {{ getDeadlineText(post) }}</span>
+                      } @else {
+                        <span class="sub-pair">
+                          <span class="sub-label">Thời gian đăng:</span>
+                          <span class="sub-val">{{ formatClock(post.publishedAt || post.createdAt) }}</span>
+                        </span>
+                      }
+                      <span class="sub-dot"></span>
+                      <span class="sub-pair">
+                        <span class="sub-label">Người đăng:</span>
+                        <span class="sub-val">{{ post.authorName || 'Nguyễn Hiền' }}</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              @if (isEnded(post)) {
+                <div class="emerg-end-note-box">
+                  <strong>✓ Thông báo kết thúc phát:</strong> {{ getEndNote(post) }}
+                </div>
+              }
+
+              <!-- Figma Node #4257:65874: Flat #F8F8F8 Info-Detail Box -->
+              <div class="emerg-info-detail-box">
+                @if (hasDistinctAction(post)) {
+                  <div class="detail-row">
+                    <div class="detail-label">Hiện trạng:</div>
+                    <div class="detail-value" [innerHTML]="renderRichContent(getWhatText(post))"></div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Cần làm ngay:</div>
+                    <div class="detail-value" [innerHTML]="renderRichContent(getActionText(post))"></div>
+                  </div>
+                } @else {
+                  <div class="detail-row">
+                    <div class="detail-label">Nội dung:</div>
+                    <div class="detail-value" [innerHTML]="renderRichContent(getWhatText(post))"></div>
+                  </div>
+                }
+
+                @if (getDocumentAttachments(post); as docList) {
+                  @if (docList.length > 0) {
+                    <div class="detail-row">
+                      <div class="detail-label">Đính kèm:</div>
+                      <div class="detail-attachments-col">
+                        @for (att of docList; track att.id) {
+                          <div class="figma-file-box" (click)="openAttachment(att)">
+                            <img src="assets/ai-social/emergency/file-pdf-24.svg" alt="PDF" width="24" height="24" class="file-type-icon" />
+                            <div class="file-meta-col">
+                              <div class="file-name-text" [title]="att.fileName">{{ att.fileName }}</div>
+                              <div class="file-size-text">{{ formatSize(att.fileSize) }}</div>
+                            </div>
+                            <button type="button" class="file-download-btn" title="Tải xuống" (click)="$event.stopPropagation(); openAttachment(att)">
+                              <img src="assets/ai-social/emergency/download-04.svg" alt="Tải xuống" width="20" height="20" />
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+
+              @if (getMediaAttachments(post); as mediaList) {
+                @if (mediaList.length > 0) {
+                  <div class="emerg-media-grid" [attr.data-count]="mediaList.length > 4 ? 4 : mediaList.length">
+                    @for (media of mediaList.slice(0, 4); track media.id; let idx = $index) {
+                      <div class="media-tile">
+                        <app-media-tile
+                          [media]="media"
+                          [moreCount]="idx === 3 && mediaList.length > 4 ? mediaList.length - 4 : 0"
+                          (mediaClick)="openMedia(post, idx)"
+                        />
+                      </div>
+                    }
+                  </div>
+                }
+              }
+
+              <!-- Hashtags Row (Only Category Hashtag above footer) -->
+              @if (post.categoryCode) {
+                <div class="emerg-hashtags-row">
+                  <span class="tag-pill category"># {{ getCategoryLabel(post.categoryCode) }}</span>
+                </div>
+              }
+
+              <!-- Figma Node #4257:84986: Bottom Right Note / Read Progress Footer -->
+              <footer class="emerg-note-footer">
+                @if (!post.isRead) {
+                  <button
+                    type="button"
+                    class="ack-read-btn"
+                    [class.urgent]="isUrgentBroadcast(post)"
+                    [disabled]="ackingPostId() === post.id"
+                    (click)="onAcknowledge(post)"
+                  >
+                    {{ ackingPostId() === post.id ? 'Đang xác nhận...' : (isUrgentBroadcast(post) ? '✓ Xác nhận đã đọc' : '✓ Đánh dấu đã đọc') }}
+                  </button>
+                } @else {
+                  <span class="ack-read-badge">✓ Đã đọc</span>
+                }
+
+                <div class="read-stats-right">
+                  <span class="read-count-label" [class.is-read]="post.isRead">{{ post.readCount || 0 }} / {{ post.recipientCount || 260 }} đã đọc</span>
+                  <span class="gray-badge-dot"></span>
+                  <button type="button" class="detail-list-link" (click)="statsRequested.emit(post)">Danh sách chi tiết</button>
+                </div>
+              </footer>
+            </article>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

@@ -1,0 +1,111 @@
+<div class="handbook-dark-layout">
+  <!-- Left 320px Dark TOC Sidebar (HandbookTocPane) -->
+  <aside class="handbook-toc-pane">
+    <header class="toc-header">
+      <a [routerLink]="['/home']" class="back-btn" title="Về trang chủ AI Social">←</a>
+      <img
+        src="assets/ai-social/home/so-tay-van-hoa.png"
+        alt="Sổ tay văn hoá"
+        width="34"
+        height="34"
+      />
+      <div class="toc-titles">
+        <h2>Sổ tay văn hoá</h2>
+        <span>MỤC LỤC SỔ TAY ({{ bookmarks().length }} MỤC)</span>
+      </div>
+    </header>
+
+    <div class="toc-search-box">
+      <input
+        type="text"
+        placeholder="Tìm chương, quy định..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+      />
+    </div>
+
+    <div class="toc-bookmarks-list">
+      @for (bm of filteredBookmarks(); track bm.pageNumber + bm.title) {
+        <button
+          type="button"
+          class="bookmark-item"
+          [class.level-2]="bm.level === 2"
+          [class.active]="currentPage() === bm.pageNumber"
+          (click)="goToPage(bm.pageNumber)"
+        >
+          <span class="bm-title">{{ bm.title }}</span>
+          <span class="bm-page-badge">tr. {{ bm.pageNumber }}</span>
+        </button>
+      }
+    </div>
+
+    @if (chapters().length) {
+      <div class="toc-mandatory-footer">
+        <div class="mandatory-heading">BÀI ĐỌC BẮT BUỘC</div>
+        @for (ch of chapters(); track ch.chapterCode) {
+          @for (art of ch.posts; track art.id) {
+            <button
+              type="button"
+              class="mandatory-art-btn"
+              (click)="goToPage(art.pdfPage || 4)"
+            >
+              <span class="art-status" [class.done]="art.isRead || markedReadPages().includes(art.pdfPage || 4)">
+                {{ art.isRead || markedReadPages().includes(art.pdfPage || 4) ? '✓' : '•' }}
+              </span>
+              <span class="art-name">{{ art.title }}</span>
+            </button>
+          }
+        }
+      </div>
+    }
+  </aside>
+
+  <!-- Right Dark PDF Reader Pane (HandbookPdfReaderPane) -->
+  <section class="handbook-reader-pane">
+    <header class="reader-toolbar">
+      <div class="doc-info">
+        <img src="assets/ai-social/file-pdf.svg" alt="PDF" width="20" height="20" />
+        <strong class="doc-title">Sổ tay Quy chuẩn Văn hoá Doanh nghiệp VNPT</strong>
+        <span class="pdf-pages-pill">PDF {{ totalPages }} trang</span>
+      </div>
+
+      <div class="page-jumper">
+        <button type="button" class="jump-btn" [disabled]="currentPage() <= 1" (click)="prevPage()">
+          ‹
+        </button>
+        <span class="page-indicator">Trang {{ currentPage() }} / {{ totalPages }}</span>
+        <button
+          type="button"
+          class="jump-btn"
+          [disabled]="currentPage() >= totalPages"
+          (click)="nextPage()"
+        >
+          ›
+        </button>
+      </div>
+
+      <div class="reader-actions">
+        <button
+          type="button"
+          class="mark-read-btn"
+          [class.done]="isCurrentPageRead()"
+          (click)="markCurrentPageRead()"
+        >
+          {{ isCurrentPageRead() ? '✓ Đã đọc trang này' : 'Đánh dấu đã đọc' }}
+        </button>
+        <button type="button" class="download-pdf-btn" (click)="downloadPdf()">
+          <img src="assets/ai-social/download-04.svg" alt="" width="15" height="15" />
+          <span>Tải PDF</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="pdf-canvas-viewport">
+      <iframe
+        class="pdf-iframe"
+        [src]="safePdfUrl()"
+        title="Sổ tay Quy chuẩn Văn hoá Doanh nghiệp VNPT"
+      ></iframe>
+    </div>
+  </section>
+</div>

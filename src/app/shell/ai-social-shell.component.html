@@ -1,107 +1,31 @@
 <div class="shell-layout">
-  <!-- Left Navigation Sidebar -->
-  <aside class="shell-sidebar" [class.mobile-open]="mobileSidebarOpen()">
-    <div class="brand-header">
-      <img src="assets/images/icons/auth/logo.svg" alt="VNPT GoConnect" class="brand-logo" />
-      <div class="brand-titles">
-        <span class="brand-name">VNPT GoConnect</span>
-        <span class="brand-sub">Truyền thông nội bộ</span>
-      </div>
-    </div>
-
-    <nav class="channel-nav">
-      <div class="nav-section-label">KÊNH TRUYỀN THÔNG</div>
-      @for (ch of channels; track ch.code) {
-        <a
-          class="channel-nav-item"
-          [routerLink]="['/channels', ch.code]"
-          routerLinkActive="active"
-          [style.--ch-color]="ch.accentColor"
-          [style.--ch-bg]="ch.softBgColor"
-          (click)="mobileSidebarOpen.set(false)"
-        >
-          <span class="channel-indicator" [style.background]="ch.accentColor"></span>
-          <div class="channel-info">
-            <span class="channel-name">{{ ch.name }}</span>
-            <span class="channel-desc">{{ ch.subtitle }}</span>
-          </div>
-          @if (badgeFor(ch.code) > 0) {
-            <span
-              class="unread-badge"
-              [class.urgent]="ch.code === 'khan'"
-            >
-              {{ badgeFor(ch.code) > 99 ? '99+' : badgeFor(ch.code) }}
-            </span>
-          }
-        </a>
-      }
-    </nav>
-
-    <!-- Mandatory Progress Summary Card -->
-    @if (state.myProgress(); as prog) {
-      <div class="sidebar-progress-card">
-        <div class="prog-header">
-          <span>Hoàn thành đọc bắt buộc</span>
-          <strong>{{ prog.completionRate || 0 }}%</strong>
-        </div>
-        <div class="prog-bar">
-          <div class="prog-fill" [style.width.%]="prog.completionRate || 0"></div>
-        </div>
-        <div class="prog-sub">
-          Đã xác nhận {{ prog.readMandatory || 0 }}/{{ prog.totalMandatory || 0 }} bài viết
-        </div>
-      </div>
-    }
-
-    <!-- User Profile Footer -->
-    <div class="sidebar-user-footer">
-      @if (auth.currentUser(); as user) {
-        <div class="user-avatar">
-          @if (user.avatarUrl) {
-            <img [src]="user.avatarUrl" [alt]="user.fullName" />
-          } @else {
-            <span>{{ userInitials() }}</span>
-          }
-        </div>
-        <div class="user-details">
-          <div class="user-name">{{ user.fullName }}</div>
-          <div class="user-unit">{{ user.unit?.name || 'Nhân sự VNPT' }}</div>
-        </div>
-      }
-      <button
-        type="button"
-        class="logout-btn"
-        title="Đăng xuất"
-        (click)="onLogout()"
-      >
-        <app-icon name="menu/logout" [size]="18" />
-      </button>
-    </div>
-  </aside>
-
-  <!-- Main Workspace Area -->
+  <!-- Main Workspace Area (No Left Sidebar — 100% Mobile-Aligned Navigation) -->
   <div class="shell-main">
     <!-- Top Header Bar -->
     <header class="shell-topbar">
-      <div class="topbar-left">
-        <button
-          type="button"
-          class="mobile-menu-btn"
-          (click)="mobileSidebarOpen.set(!mobileSidebarOpen())"
-        >
-          ☰
-        </button>
-        <span class="workspace-breadcrumb">Không gian Truyền thông & Văn hoá số VNPT</span>
-      </div>
+      <a [routerLink]="['/home']" class="topbar-brand" title="Về trang chủ VNPT AI Social">
+        <img src="assets/ai-social/logo.png" alt="VNPT AI Social" class="brand-logo" />
+        <div class="brand-titles">
+          <span class="brand-name">VNPT AI Social</span>
+          <span class="brand-sub">Truyền thông &amp; Văn hoá nội bộ</span>
+        </div>
+      </a>
 
       <div class="topbar-right">
+        <!-- Notification Bell -->
         <div class="notification-wrapper">
           <button
             type="button"
             class="notif-bell-btn"
+            title="Thông báo"
             (click)="toggleNotificationPanel()"
           >
-            <app-icon name="common/notification" [size]="20" />
+            <img
+              src="assets/ai-social/home/ic-notification-bubble.svg"
+              alt="Thông báo"
+              width="20"
+              height="20"
+            />
             @if (state.unreadNotificationCount() > 0) {
               <span class="notif-dot">{{ state.unreadNotificationCount() }}</span>
             }
@@ -134,18 +58,60 @@
             </div>
           }
         </div>
+
+        <!-- User Profile Chip + Explicit Logout Button -->
+        <div class="topbar-user-chip">
+          <div class="user-avatar">
+            @if (auth.currentUser()?.avatarUrl; as avatar) {
+              <img [src]="avatar" [alt]="displayName()" />
+            } @else {
+              <span>{{ userInitials() }}</span>
+            }
+          </div>
+          <div class="user-details">
+            <div class="user-name">{{ displayName() }}</div>
+            <div class="user-unit">{{ displayUnit() }}</div>
+          </div>
+
+          <button
+            type="button"
+            class="logout-action-btn"
+            title="Đăng xuất tài khoản"
+            (click)="onLogout()"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            <span>Đăng xuất</span>
+          </button>
+        </div>
       </div>
     </header>
 
-    <!-- Active Emergency Broadcast Alert Banner -->
-    @if (state.activeEmergencyPost(); as urgentPost) {
+    <!-- Active Emergency Broadcast Alert Banner (shown on non-home pages) -->
+    @if (!isHomeRoute() && state.activeEmergencyPost(); as urgentPost) {
       <div class="emergency-top-banner">
         <div class="emerg-text">
           <span class="emerg-pill">KHẨN CẤP</span>
           <strong>{{ urgentPost.title }}</strong>
         </div>
-        <a [routerLink]="['/posts', urgentPost.id]" class="emerg-cta">
-          Xem & Xác nhận ngay →
+        <a
+          [routerLink]="['/channels', 'khan']"
+          [queryParams]="{ highlightId: urgentPost.id }"
+          class="emerg-cta"
+        >
+          Xem &amp; Xác nhận ngay →
         </a>
       </div>
     }

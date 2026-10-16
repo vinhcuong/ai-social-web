@@ -9,7 +9,7 @@ export interface AttachmentItem {
   downloadUrl?: string;
   thumbnailUrl?: string;
   s3Key?: string;
-  kind?: 'image' | 'video' | 'document' | string;
+  kind?: 'image' | 'video' | 'file' | string;
 }
 
 export interface AudienceUnitItem {

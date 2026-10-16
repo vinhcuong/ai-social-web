@@ -1,35 +1,28 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { NzButtonComponent } from 'ng-zorro-antd/button';
-import { NzInputModule } from 'ng-zorro-antd/input';
-import { CHANNELS_META, ChannelCode } from '../../../../core/constants/storage-keys';
-import {
-  AttachmentItem,
-  HandbookTocArticle,
-  PostModel,
-} from '../../../../core/models/ai-social.models';
-import { AppIcon } from '../../../../shared/icon/icon';
-import { InlineComposerCardComponent } from '../../components/composer/inline-composer-card/inline-composer-card.component';
-import { HandbookPdfViewerComponent } from '../../components/handbook-pdf-viewer/handbook-pdf-viewer.component';
+import { combineLatest } from 'rxjs';
+import { ChannelCode } from '../../../../core/constants/storage-keys';
+import { AttachmentItem, PostModel } from '../../../../core/models/ai-social.models';
 import { MediaLightboxModalComponent } from '../../components/media-lightbox-modal/media-lightbox-modal.component';
-import { PostCardComponent } from '../../components/post-card/post-card.component';
+import { PostStatsModalComponent } from '../../components/post-stats-modal/post-stats-modal.component';
 import { AiSocialShareModalComponent } from '../../components/share-modal/ai-social-share-modal.component';
 import { AiSocialStateService } from '../../services/ai-social-state.service';
+import { EmergencyChannelViewComponent } from '../channels/emergency-channel-view/emergency-channel-view.component';
+import { EventChannelViewComponent } from '../channels/event-channel-view/event-channel-view.component';
+import { HandbookChannelViewComponent } from '../channels/handbook-channel-view/handbook-channel-view.component';
+import { MediaChannelViewComponent } from '../channels/media-channel-view/media-channel-view.component';
 
 @Component({
   selector: 'app-channel-feed-page',
   standalone: true,
   imports: [
-    FormsModule,
-    NzInputModule,
-    NzButtonComponent,
-    AppIcon,
-    InlineComposerCardComponent,
-    PostCardComponent,
-    HandbookPdfViewerComponent,
+    EmergencyChannelViewComponent,
+    EventChannelViewComponent,
+    MediaChannelViewComponent,
+    HandbookChannelViewComponent,
     AiSocialShareModalComponent,
     MediaLightboxModalComponent,
+    PostStatsModalComponent,
   ],
   templateUrl: './channel-feed-page.component.html',
   styleUrls: ['./channel-feed-page.component.scss'],
@@ -39,56 +32,37 @@ export class ChannelFeedPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   readonly state = inject(AiSocialStateService);
 
-  readonly channelCode = signal<ChannelCode>('truyenthong');
-  readonly sotayViewMode = signal<'feed' | 'pdf'>('feed');
-  readonly selectedPdfPage = signal<number | null>(1);
-  readonly selectedPdfTitle = signal<string>('Sổ tay văn hoá VNPT');
+  readonly channelCode = signal<ChannelCode>('khan');
+  readonly highlightId = signal<string | null>(null);
 
   readonly sharingPost = signal<PostModel | null>(null);
+  readonly statsModalPost = signal<PostModel | null>(null);
   readonly lightboxMedia = signal<{ items: AttachmentItem[]; index: number } | null>(null);
 
-  readonly channelMeta = computed(
-    () =>
-      CHANNELS_META.find((c) => c.code === this.channelCode()) || CHANNELS_META[2],
-  );
-
-  readonly pinnedPosts = computed(() =>
-    this.state.posts().filter((p) => !!p.pinnedAt),
-  );
-
-  readonly upcomingEvents = computed(() =>
-    this.state
-      .posts()
-      .filter((p) => p.channelCode === 'sukien' && !!p.eventStartsAt)
-      .slice(0, 5),
-  );
-
   ngOnInit(): void {
-    this.route.paramMap.subscribe((params) => {
-      const rawCode = (params.get('channelCode') || 'truyenthong') as ChannelCode;
-      const validCode: ChannelCode = ['khan', 'sukien', 'truyenthong', 'sotay'].includes(rawCode)
-        ? rawCode
-        : 'truyenthong';
+    combineLatest([this.route.paramMap, this.route.queryParamMap]).subscribe(
+      async ([params, query]) => {
+        const rawCode = (params.get('channelCode') || 'khan') as ChannelCode;
+        const validCode: ChannelCode = ['khan', 'sukien', 'truyenthong', 'sotay'].includes(rawCode)
+          ? rawCode
+          : 'khan';
 
-      this.channelCode.set(validCode);
-      this.state.loadChannelPosts(validCode, true);
+        const hlId = query.get('highlightId');
+        this.highlightId.set(hlId);
 
-      if (validCode === 'sotay') {
-        this.state.loadHandbookToc();
-      } else {
-        this.sotayViewMode.set('feed');
-      }
-    });
-  }
+        if (this.channelCode() !== validCode || this.state.posts().length === 0) {
+          this.channelCode.set(validCode);
+          await this.state.loadChannelPosts(validCode, true);
+        }
 
-  onSearchSubmit(): void {
-    this.state.loadChannelPosts(this.channelCode(), false);
-  }
-
-  selectCategory(catCode: string): void {
-    const next = this.state.selectedCategory() === catCode ? '' : catCode;
-    this.state.selectedCategory.set(next);
-    this.state.loadChannelPosts(this.channelCode(), false);
+        if (hlId) {
+          setTimeout(() => {
+            const el = document.getElementById(`post-${hlId}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 150);
+        }
+      },
+    );
   }
 
   onPostCreated(created: PostModel): void {
@@ -96,20 +70,13 @@ export class ChannelFeedPageComponent implements OnInit {
     this.state.refreshBadges();
   }
 
-  onPostChanged(updated: PostModel): void {
+  onPostUpdated(updated: PostModel): void {
     this.state.updatePostInList(updated);
     this.state.refreshBadges();
-    this.state.refreshMyProgress();
   }
 
   onPostDeleted(postId: string): void {
     this.state.removePostFromList(postId);
     this.state.refreshBadges();
-  }
-
-  onSelectTocItem(item: HandbookTocArticle, index: number): void {
-    this.selectedPdfTitle.set(item.title);
-    this.selectedPdfPage.set(item.pdfPage || index + 1);
-    this.sotayViewMode.set('pdf');
   }
 }

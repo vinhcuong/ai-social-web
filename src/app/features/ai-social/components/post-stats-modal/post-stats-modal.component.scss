@@ -1,0 +1,379 @@
+.stats-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.stats-modal-dialog {
+  width: 960px;
+  max-width: 95vw;
+  max-height: 90vh;
+  background: #ffffff;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  box-sizing: border-box;
+  box-shadow: 0 20px 50px rgba(0, 10, 26, 0.22);
+  overflow-y: auto;
+}
+
+/* 1. Header */
+.stats-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.header-tag-pill {
+  background: #feebec;
+  border: 1px solid #fcbbbe;
+  border-radius: 100px;
+  padding: 2px 10px;
+  color: #f52833;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.header-right-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.read-progress-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.read-progress-track {
+  width: 99px;
+  height: 6px;
+  background: #ccd0d5;
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.read-progress-fill {
+  height: 100%;
+  background: #0057e5;
+  border-radius: 100px;
+}
+
+.read-ratio {
+  color: #1a2a45;
+  font-size: 14px;
+  strong { color: #0057e5; font-weight: 700; }
+}
+
+.meta-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #b3b8c1;
+  display: inline-block;
+}
+
+.deadline-text {
+  color: #404d64;
+  font-size: 14px;
+}
+
+.close-icon-btn {
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  color: #667183;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+}
+
+/* 2. Banner */
+.post-summary-card {
+  background: linear-gradient(90deg, #f0f7fe 0%, #e7f2fe 100%);
+  border: 1px solid #dbe9ff;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.post-thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.post-summary-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.post-title {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #000a1a;
+  line-height: 28px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.post-meta-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  .meta-label { color: #8c94a1; }
+  .meta-val { color: #404d64; }
+}
+
+/* 3. Tabs & Search */
+.interaction-tabs-search-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.interaction-tabs-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tab-item {
+  border: none;
+  background: transparent;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #667183;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  &.active {
+    background: #dbe9ff;
+    color: #0057e5;
+    font-weight: 600;
+  }
+}
+
+.tab-badge {
+  border-radius: 100px;
+  padding: 1px 8px;
+  font-size: 12px;
+  &.gray { background: #e6e8eb; color: #404d64; }
+  &.heart-badge { background: #f52833; color: #ffffff; font-size: 10px; font-weight: 600; }
+}
+
+.tab-divider {
+  width: 1px;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #ccd0d5;
+  border-radius: 8px;
+  padding: 0 10px;
+  height: 40px;
+  width: 180px;
+  box-sizing: border-box;
+  background: #ffffff;
+}
+
+.search-icon {
+  color: #b3b8c1;
+  flex-shrink: 0;
+}
+
+.search-input {
+  border: none;
+  outline: none;
+  font-size: 14px;
+  width: 100%;
+  color: #1a2a45;
+  &::placeholder { color: #b3b8c1; }
+}
+
+/* 4. Filter Pills */
+.unit-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.unit-pill {
+  border: 1px solid #e6e8eb;
+  background: #ffffff;
+  border-radius: 100px;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #404d64;
+  cursor: pointer;
+  transition: all 0.2s;
+  &.active {
+    background: #f0f6ff;
+    border-color: #c7dcff;
+    color: #0057e5;
+  }
+}
+
+/* 5. Recipients List */
+.recipients-list-card {
+  border: 1px solid #e1e9f4;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.empty-list-notice {
+  padding: 20px;
+  text-align: center;
+  color: #8c94a1;
+  font-size: 14px;
+}
+
+.recipient-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.user-info-col {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  &.placeholder {
+    background: #e0f2fe;
+    color: #0057e5;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.user-text-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-fullname {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a2a45;
+}
+
+.user-jobtitle {
+  font-size: 12px;
+  font-weight: 400;
+  color: #667183;
+}
+
+.user-status-col {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.share-count-pill {
+  background: #e7f2fe;
+  color: #0057e5;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 100px;
+}
+
+.interaction-time {
+  font-size: 14px;
+  color: #667183;
+}
+
+.status-icon {
+  flex-shrink: 0;
+}
+
+/* 6. Footer */
+.stats-modal-footer {
+  border-top: 1px solid #e6e8eb;
+  padding-top: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.btn-outline-close {
+  width: 131px;
+  height: 40px;
+  border: 1.5px solid #0057e5;
+  border-radius: 8px;
+  background: transparent;
+  color: #0057e5;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover { background: #f0f7fe; }
+}
+
+.btn-primary-export {
+  width: 131px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: #0057e5;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover { background: #0045b5; }
+}

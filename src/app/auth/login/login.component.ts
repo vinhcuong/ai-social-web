@@ -1,144 +1,50 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Title } from '@angular/platform-browser';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
-import { NzFormControlComponent, NzFormDirective, NzFormItemComponent, NzFormLabelComponent } from 'ng-zorro-antd/form';
-import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonComponent } from 'ng-zorro-antd/button';
-import { NzTypographyComponent } from 'ng-zorro-antd/typography';
-import { environment } from '../../../environments/environment';
-import { PHONENUMBER_REGEX, storageKey } from '../../core/constants/storage-keys';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { storageKey } from '../../core/constants/storage-keys';
 import { AiSocialAuthService } from '../../core/services/ai-social-auth.service';
-import { AppIcon } from '../../shared/icon/icon';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [
-    FormsModule,
-    ReactiveFormsModule,
-    NzFormDirective,
-    NzFormItemComponent,
-    NzFormLabelComponent,
-    NzFormControlComponent,
-    NzInputModule,
-    NzButtonComponent,
-    NzTypographyComponent,
-    AppIcon,
-  ],
+  imports: [FormsModule, NzInputModule, NzButtonComponent],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LoginComponent implements OnInit {
-  private readonly fb = inject(FormBuilder);
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly titleService = inject(Title);
+export class LoginComponent {
   private readonly authService = inject(AiSocialAuthService);
-  private readonly responsive = inject(BreakpointObserver);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
+  private readonly message = inject(NzMessageService);
 
-  loginForm!: FormGroup;
-  readonly isLoggingIn = signal(false);
-  readonly formErrorMsg = signal('');
-  readonly isMobile = signal(false);
-  readonly isDevMode = !environment.production;
-  readonly showDevTokenBox = signal(false);
-  readonly devGcnToken = signal('');
+  phoneNumber = '';
+  readonly isLoading = signal(false);
 
-  ngOnInit(): void {
-    this.titleService.setTitle('Đăng nhập SĐT + OTP | VNPT AI Social');
-    const savedPhone = localStorage.getItem(storageKey.phone) ?? '';
-    this.loginForm = this.fb.group({
-      phone: [savedPhone, [Validators.required, Validators.pattern(PHONENUMBER_REGEX)]],
-    });
-
-    const redirectParam = this.route.snapshot.queryParamMap.get('redirect');
-    if (redirectParam) {
-      this.authService.redirectUrl = redirectParam;
-    }
-
-    this.responsive
-      .observe([Breakpoints.XSmall, Breakpoints.Small])
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((result) => {
-        this.isMobile.set(result.matches);
-      });
-  }
-
-  async doSendOtp(): Promise<void> {
-    this.loginForm.markAllAsTouched();
-    const phoneCtrl = this.loginForm.controls['phone'];
-    if (!phoneCtrl.valid) {
-      phoneCtrl.markAsDirty();
-      phoneCtrl.updateValueAndValidity();
+  async onSubmitPhone(): Promise<void> {
+    const cleanPhone = this.phoneNumber.trim();
+    if (!/^0\d{9}$/.test(cleanPhone)) {
+      this.message.warning('Vui lòng nhập số điện thoại hợp lệ (10 chữ số, bắt đầu bằng số 0).');
       return;
     }
 
-    const phone = String(phoneCtrl.value || '').trim();
-    const savedPhone = localStorage.getItem(storageKey.phone) ?? '';
-    const createDateOtp = localStorage.getItem(storageKey.otpCreateDate);
-
-    if (createDateOtp && phone === savedPhone) {
-      const createdAt = DateTime.fromISO(createDateOtp);
-      const diffMinutes = DateTime.now().diff(createdAt, ['minutes']).minutes;
-      if (diffMinutes >= 0 && diffMinutes < 2) {
-        await this.router.navigate(['/login/otp-auth']);
-        return;
-      }
-    }
-
-    if (!navigator.onLine) {
-      this.formErrorMsg.set('Không có kết nối Internet! Vui lòng kiểm tra lại kết nối!');
-      return;
-    }
-
-    this.formErrorMsg.set('');
-    this.isLoggingIn.set(true);
-    localStorage.setItem(storageKey.phone, phone);
-
+    this.isLoading.set(true);
     try {
-      const res = await this.authService.sendOtp(phone);
-      if (res?.error) {
-        this.formErrorMsg.set(
-          res.error.message || res.error.errors?.[0]?.message || 'Không thể gửi mã OTP.',
-        );
-        return;
-      }
+      await this.authService.sendOtp(cleanPhone);
+      localStorage.setItem(storageKey.phone, cleanPhone);
       localStorage.setItem(storageKey.otpCreateDate, DateTime.now().toISO()!);
-      await this.router.navigate(['/login/otp-auth']);
-    } catch (e: any) {
-      this.formErrorMsg.set(
-        e?.error?.message || e?.error?.errors?.[0]?.message || e?.message || 'Lỗi gửi mã OTP.',
-      );
+      await this.router.navigate(['/otp'], { queryParams: { phone: cleanPhone } });
+    } catch (err: any) {
+      const msg =
+        err?.error?.error?.message ||
+        err?.error?.message ||
+        'Không thể gửi mã OTP. Vui lòng kiểm tra lại số điện thoại.';
+      this.message.error(msg);
     } finally {
-      this.isLoggingIn.set(false);
-    }
-  }
-
-  async loginWithDevToken(): Promise<void> {
-    const token = this.devGcnToken().trim();
-    if (!token) {
-      this.formErrorMsg.set('Vui lòng dán GoConnect JWT token.');
-      return;
-    }
-    this.isLoggingIn.set(true);
-    this.formErrorMsg.set('');
-    try {
-      const ok = await this.authService.loginWithGcnToken(token);
-      if (!ok) {
-        this.formErrorMsg.set('Token không hợp lệ hoặc không khớp nhân sự trên hệ thống.');
-        return;
-      }
-      const target = this.authService.redirectUrl || '/channels/truyenthong';
-      this.authService.redirectUrl = null;
-      await this.router.navigateByUrl(target);
-    } finally {
-      this.isLoggingIn.set(false);
+      this.isLoading.set(false);
     }
   }
 }

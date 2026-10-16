@@ -1,213 +1,53 @@
-<div class="channel-page-container">
-  <!-- Channel Header Banner -->
-  <section class="channel-hero" [style.--channel-accent]="channelMeta().accentColor">
-    <div class="hero-main">
-      <div class="hero-title-group">
-        <span class="channel-badge-dot" [style.background]="channelMeta().accentColor"></span>
-        <div>
-          <h1 class="channel-title">{{ channelMeta().name }}</h1>
-          <p class="channel-subtitle">{{ channelMeta().subtitle }}</p>
-        </div>
-      </div>
-
-      <div class="hero-controls">
-        @if (channelCode() === 'sotay') {
-          <div class="mode-switch">
-            <button
-              type="button"
-              class="mode-btn"
-              [class.active]="sotayViewMode() === 'feed'"
-              (click)="sotayViewMode.set('feed')"
-            >
-              Bài viết Sổ tay
-            </button>
-            <button
-              type="button"
-              class="mode-btn"
-              [class.active]="sotayViewMode() === 'pdf'"
-              (click)="sotayViewMode.set('pdf')"
-            >
-              Đọc PDF Sổ tay
-            </button>
-          </div>
-        }
-
-        <div class="search-box">
-          <input
-            nz-input
-            type="text"
-            placeholder="Tìm kiếm trong kênh..."
-            [ngModel]="state.searchQuery()"
-            (ngModelChange)="state.searchQuery.set($event)"
-            (keyup.enter)="onSearchSubmit()"
-          />
-          <button type="button" class="search-btn" (click)="onSearchSubmit()">
-            <app-icon name="common/search" [size]="16" />
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Category filter pills -->
-    @if (state.categories().length > 0) {
-      <div class="category-pills">
-        <button
-          type="button"
-          class="cat-pill"
-          [class.active]="!state.selectedCategory()"
-          (click)="selectCategory('')"
-        >
-          Tất cả
-        </button>
-        @for (cat of state.categories(); track cat.code) {
-          <button
-            type="button"
-            class="cat-pill"
-            [class.active]="state.selectedCategory() === cat.code"
-            (click)="selectCategory(cat.code)"
-          >
-            {{ cat.name }}
-          </button>
-        }
-      </div>
-    }
-  </section>
-
-  <!-- 2-Column Desktop Grid -->
-  <div class="channel-columns" [class.sotay-pdf-layout]="channelCode() === 'sotay' && sotayViewMode() === 'pdf'">
-    <!-- Main Center Feed or PDF Viewer -->
-    <main class="feed-main-col">
-      <app-inline-composer-card
-        [channelCode]="channelCode()"
+<div class="ai-social-channel-container">
+  @switch (channelCode()) {
+    @case ('khan') {
+      <app-emergency-channel-view
+        [posts]="state.posts()"
         [categories]="state.categories()"
+        [loading]="state.loadingPosts()"
+        [highlightId]="highlightId()"
         (postCreated)="onPostCreated($event)"
+        (postUpdated)="onPostUpdated($event)"
+        (postDeleted)="onPostDeleted($event)"
+        (shareRequested)="sharingPost.set($event)"
+        (statsRequested)="statsModalPost.set($event)"
+        (mediaClicked)="lightboxMedia.set($event)"
       />
-
-      @if (channelCode() === 'sotay' && sotayViewMode() === 'pdf') {
-        <app-handbook-pdf-viewer
-          [title]="selectedPdfTitle()"
-          [pageNumber]="selectedPdfPage()"
-        />
-      } @else {
-        @if (state.loadingPosts() && state.posts().length === 0) {
-          <div class="feed-skeleton-list">
-            <div class="skeleton-card"></div>
-            <div class="skeleton-card"></div>
-          </div>
-        } @else if (state.posts().length === 0) {
-          <div class="empty-feed-card">
-            <img src="assets/ai-social/images/empty_box.svg" alt="Empty" class="empty-img" />
-            <h3>Chưa có bài viết nào trong kênh {{ channelMeta().name }}</h3>
-            <p>Các thông báo và bài viết mới nhất sẽ được cập nhật trực tiếp tại đây.</p>
-          </div>
-        } @else {
-          <div class="posts-list">
-            @for (post of state.posts(); track post.id) {
-              <app-post-card
-                [post]="post"
-                (postChanged)="onPostChanged($event)"
-                (postDeleted)="onPostDeleted($event)"
-                (shareRequested)="sharingPost.set($event)"
-                (mediaClicked)="lightboxMedia.set($event)"
-              />
-            }
-          </div>
-
-          @if (state.hasMorePosts()) {
-            <div class="load-more-row">
-              <button
-                type="button"
-                nz-button
-                nzType="default"
-                [nzLoading]="state.loadingPosts()"
-                (click)="state.loadMorePosts()"
-              >
-                Tải thêm bài viết
-              </button>
-            </div>
-          }
-        }
-      }
-    </main>
-
-    <!-- Sticky Right Context Sidebar -->
-    <aside class="feed-right-col">
-      @if (channelCode() === 'sotay') {
-        <div class="widget-card">
-          <h3 class="widget-title">Mục lục Sổ tay văn hoá</h3>
-          @if (state.handbookChapters().length === 0) {
-            <p class="widget-empty">Đang cập nhật danh mục chương...</p>
-          } @else {
-            <div class="toc-list">
-              @for (ch of state.handbookChapters(); track ch.chapterCode) {
-                <div class="toc-chapter">
-                  <div class="toc-chapter-header">
-                    <span class="ch-name">{{ ch.chapterTitle }}</span>
-                    <span class="ch-progress">{{ ch.readPosts }}/{{ ch.totalPosts }} đã đọc</span>
-                  </div>
-                  <div class="toc-items">
-                    @for (item of ch.posts; track item.id; let idx = $index) {
-                      <button
-                        type="button"
-                        class="toc-item-btn"
-                        [class.is-read]="item.isRead"
-                        (click)="onSelectTocItem(item, idx)"
-                      >
-                        <span class="status-dot"></span>
-                        <span class="item-title">{{ item.title }}</span>
-                      </button>
-                    }
-                  </div>
-                </div>
-              }
-            </div>
-          }
-        </div>
-      }
-
-      @if (pinnedPosts().length > 0) {
-        <div class="widget-card">
-          <h3 class="widget-title">📌 Bài viết đã ghim</h3>
-          <div class="quick-links-list">
-            @for (p of pinnedPosts(); track p.id) {
-              <div class="quick-link-item">
-                <span class="q-title">{{ p.title }}</span>
-                <span class="q-meta">{{ p.authorName || 'VNPT' }}</span>
-              </div>
-            }
-          </div>
-        </div>
-      }
-
-      @if (channelCode() === 'sukien' && upcomingEvents().length > 0) {
-        <div class="widget-card">
-          <h3 class="widget-title">📅 Sự kiện sắp diễn ra</h3>
-          <div class="quick-links-list">
-            @for (ev of upcomingEvents(); track ev.id) {
-              <div class="quick-link-item">
-                <span class="q-title">{{ ev.title }}</span>
-                <span class="q-meta">{{ ev.registeredCount || 0 }} người đăng ký</span>
-              </div>
-            }
-          </div>
-        </div>
-      }
-
-      @if (state.myProgress(); as prog) {
-        <div class="widget-card progress-widget">
-          <h3 class="widget-title">Tiến độ đọc bắt buộc</h3>
-          <div class="progress-ring-row">
-            <div class="progress-number">{{ prog.completionRate || 0 }}%</div>
-            <div class="progress-desc">
-              Đã hoàn thành <strong>{{ prog.readMandatory || 0 }}/{{ prog.totalMandatory || 0 }}</strong> nội dung bắt buộc
-            </div>
-          </div>
-        </div>
-      }
-    </aside>
-  </div>
+    }
+    @case ('sukien') {
+      <app-event-channel-view
+        [posts]="state.posts()"
+        [categories]="state.categories()"
+        [scheduleGroups]="state.upcomingSchedule()"
+        [loading]="state.loadingPosts()"
+        [highlightId]="highlightId()"
+        (postCreated)="onPostCreated($event)"
+        (postUpdated)="onPostUpdated($event)"
+        (shareRequested)="sharingPost.set($event)"
+        (statsRequested)="statsModalPost.set($event)"
+        (mediaClicked)="lightboxMedia.set($event)"
+      />
+    }
+    @case ('truyenthong') {
+      <app-media-channel-view
+        [posts]="state.posts()"
+        [categories]="state.categories()"
+        [loading]="state.loadingPosts()"
+        [highlightId]="highlightId()"
+        (postCreated)="onPostCreated($event)"
+        (postUpdated)="onPostUpdated($event)"
+        (postDeleted)="onPostDeleted($event)"
+        (shareRequested)="sharingPost.set($event)"
+        (mediaClicked)="lightboxMedia.set($event)"
+      />
+    }
+    @case ('sotay') {
+      <app-handbook-channel-view />
+    }
+  }
 </div>
 
+<!-- Share Modal -->
 @if (sharingPost(); as sp) {
   <app-ai-social-share-modal
     [visible]="true"
@@ -216,6 +56,15 @@
   />
 }
 
+<!-- Post Stats & 3-Tier Reminder Modal -->
+@if (statsModalPost(); as statPost) {
+  <app-post-stats-modal
+    [post]="statPost"
+    (closed)="statsModalPost.set(null)"
+  />
+}
+
+<!-- Media Lightbox Modal -->
 @if (lightboxMedia(); as media) {
   <app-media-lightbox-modal
     [visible]="true"

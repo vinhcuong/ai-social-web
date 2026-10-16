@@ -60,13 +60,20 @@ export interface EmployeeProfile {
 export interface RbacPermissions {
   isTenantAdmin?: boolean;
   canPublishChannels?: ChannelCode[];
+  publisherChannels?: string[];
   canReviewChannels?: ChannelCode[];
   canBroadcastEmergency?: boolean;
-  roles?: Array<{
-    role: string;
-    channelCode?: string | null;
-    unitId?: string | null;
-  }>;
+  khanTypes?: string[];
+  sotayTypes?: string[];
+  statsScopePaths?: string[];
+  roles?: Array<
+    | string
+    | {
+        role: string;
+        channelCode?: string | null;
+        unitId?: string | null;
+      }
+  >;
 }
 
 export interface ExchangeTokenResponse {

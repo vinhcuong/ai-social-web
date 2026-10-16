@@ -1,100 +1,170 @@
-<div id="login-form" class="login-page-wrapper" [class.login-box]="!isMobile()">
-  <div class="login-form-container" [class.mobile]="isMobile()">
-    <div class="brand-section">
-      <img alt="GoConnect VNPT AI" class="logo" src="assets/images/icons/logo_login.svg" />
-      <h1 class="portal-title">Xác thực mã OTP</h1>
-      <p class="portal-subtitle">
-        Mã xác thực đã được gửi tới số điện thoại <strong>{{ phoneNumberHide() }}</strong>
+<div class="auth-page">
+  <div class="auth-container">
+    <!-- Left Column: Identical 4 Official Channels Showcase as Login -->
+    <section class="auth-showcase">
+      <div class="showcase-badge">
+        <img src="assets/ai-social/logo.png" alt="VNPT AI Social" class="badge-logo" />
+        <span>Hệ sinh thái Truyền thông &amp; Văn hoá số VNPT</span>
+      </div>
+
+      <h2 class="showcase-heading">
+        Kết nối thông tin chính thống &amp; Văn hoá nội bộ toàn Tập đoàn
+      </h2>
+      <p class="showcase-desc">
+        Đồng bộ tức thời với ứng dụng GoConnect Mobile — tiếp nhận chỉ đạo điều hành, lịch sự kiện,
+        tin tức nội bộ và cẩm nang văn hoá số mọi lúc, mọi nơi.
       </p>
-    </div>
 
-    <div class="form-input-login">
-      <form nz-form nzLayout="vertical" (ngSubmit)="submitForm()">
-        <nz-form-item>
-          <nz-form-label class="bold" nzFor="input-otp">Mã xác thực OTP (6 chữ số)</nz-form-label>
-          <nz-form-control>
-            <div class="otp-input-group">
-              <app-icon name="Leading_icon" [size]="18" customClass="prefix-icon" />
-              <input
-                id="input-otp"
-                type="tel"
-                nz-input
-                maxlength="6"
-                name="otp"
-                placeholder="Nhập 6 chữ số OTP"
-                [ngModel]="otp()"
-                (ngModelChange)="otp.set($event)"
-              />
-            </div>
-          </nz-form-control>
-        </nz-form-item>
-
-        <p class="timer-hint">
-          Mã OTP sẽ hết hạn trong vòng:
-          <app-countdown-timer
-            format="ms"
-            [countdown]="true"
-            [startTime]="timer()"
-            (onTick)="onTick($event)"
+      <div class="showcase-channels-grid">
+        <div class="showcase-channel-item">
+          <img
+            src="assets/ai-social/home/thong-bao-khan.png"
+            alt="Thông báo khẩn"
+            class="ch-icon"
           />
+          <div class="ch-meta">
+            <strong>Thông báo khẩn</strong>
+            <span>Chỉ đạo điều hành &amp; xác nhận đã xem</span>
+          </div>
+        </div>
+
+        <div class="showcase-channel-item">
+          <img
+            src="assets/ai-social/home/thong-tin-su-kien.png"
+            alt="Thông tin sự kiện"
+            class="ch-icon"
+          />
+          <div class="ch-meta">
+            <strong>Thông tin sự kiện</strong>
+            <span>Lịch họp, đào tạo &amp; sự kiện Tập đoàn</span>
+          </div>
+        </div>
+
+        <div class="showcase-channel-item">
+          <img
+            src="assets/ai-social/home/truyen-thong-noi-bo.png"
+            alt="Truyền thông nội bộ"
+            class="ch-icon"
+          />
+          <div class="ch-meta">
+            <strong>Truyền thông nội bộ</strong>
+            <span>Chiến dịch, vinh danh &amp; tương tác</span>
+          </div>
+        </div>
+
+        <div class="showcase-channel-item">
+          <img
+            src="assets/ai-social/home/so-tay-van-hoa.png"
+            alt="Sổ tay văn hoá"
+            class="ch-icon"
+          />
+          <div class="ch-meta">
+            <strong>Sổ tay văn hoá</strong>
+            <span>Quy định, chính sách &amp; bài đọc bắt buộc</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: OTP Confirmation Card -->
+    <section class="auth-card">
+      <div class="brand-header">
+        <div class="logo-ring">
+          <img alt="VNPT AI Social" class="brand-logo" src="assets/ai-social/logo.png" />
+        </div>
+        <h1 class="brand-title">Xác thực mã OTP</h1>
+        <p class="brand-subtitle">
+          Mã xác thực 6 chữ số đã gửi tới <strong>{{ phoneNumberHide() }}</strong>
         </p>
+      </div>
+
+      <form class="auth-form" (ngSubmit)="submitForm()">
+        <div class="field-group">
+          <label class="field-label" for="otp-box-0">Nhập mã xác thực OTP</label>
+
+          <!-- 6 Individual OTP Digit Boxes -->
+          <div class="otp-boxes-row" (paste)="onOtpPaste($event)">
+            @for (idx of otpIndices; track idx) {
+              <input
+                [id]="'otp-box-' + idx"
+                type="tel"
+                inputmode="numeric"
+                maxlength="1"
+                autocomplete="one-time-code"
+                class="otp-digit-box"
+                [class.filled]="!!otpDigits()[idx]"
+                [value]="otpDigits()[idx]"
+                (input)="onDigitInput(idx, $event)"
+                (keydown)="onDigitKeyDown(idx, $event)"
+              />
+            }
+          </div>
+        </div>
+
+        <div class="otp-timer-bar">
+          <span class="timer-text">
+            Hiệu lực còn lại:
+            <app-countdown-timer
+              format="ms"
+              [countdown]="true"
+              [startTime]="timer()"
+              (onTick)="onTick($event)"
+            />
+          </span>
+
+          <button
+            type="button"
+            class="resend-link-btn"
+            [disabled]="isLoggingIn()"
+            (click)="onResendOtp()"
+          >
+            Gửi lại mã OTP
+          </button>
+        </div>
 
         @if (errorMsg()) {
-          <div nz-typography nzType="danger" class="error-banner">{{ errorMsg() }}</div>
+          <div class="otp-error-banner">{{ errorMsg() }}</div>
         }
 
-        <label
-          class="terms-checkbox"
-          nz-checkbox
-          [ngModel]="isCheckedButton()"
-          (ngModelChange)="isCheckedButton.set($event)"
-          [ngModelOptions]="{ standalone: true }"
-        >
-          Đồng ý với Điều khoản sử dụng và Chính sách bảo mật của VNPT GoConnect
+        <label class="terms-check-row">
+          <input
+            type="checkbox"
+            class="terms-checkbox-input"
+            [ngModel]="isCheckedButton()"
+            (ngModelChange)="isCheckedButton.set($event)"
+            [ngModelOptions]="{ standalone: true }"
+          />
+          <span class="terms-label-text">
+            Đồng ý với <strong>Điều khoản sử dụng</strong> và
+            <strong>Chính sách bảo mật</strong> của VNPT GoConnect
+          </span>
         </label>
 
         <button
           type="submit"
           nz-button
           nzType="primary"
-          nzSize="large"
-          class="action-btn"
+          class="submit-btn"
           [disabled]="!isCheckedButton()"
           [nzLoading]="isLoggingIn()"
         >
-          Đăng nhập
+          Xác nhận &amp; Đăng nhập
         </button>
 
         <button
           type="button"
-          nz-button
-          nzSize="large"
-          class="action-btn secondary"
-          [disabled]="isLoggingIn()"
-          (click)="onResendOtp()"
-        >
-          Gửi lại mã OTP
-        </button>
-
-        <button
-          type="button"
-          nz-button
-          nzSize="large"
-          class="action-btn secondary"
+          class="back-phone-btn"
           [disabled]="isLoggingIn()"
           (click)="onClickBack()"
         >
-          Quay lại
+          ← Quay lại đổi số điện thoại
         </button>
       </form>
-    </div>
 
-    <div class="footer-section">
-      <div class="copyright">
-        <app-icon name="copyright" [size]="14" />
-        <span>2026 GoConnect AI Social — Một sản phẩm của</span>
-        <img alt="VNPT AI" src="assets/images/icons/logo_ai.svg" height="16" />
+      <div class="auth-footer">
+        <div class="footer-brand">© 2026 VNPT AI Social</div>
+        <div class="footer-sub">Nền tảng Truyền thông &amp; Văn hoá nội bộ</div>
       </div>
-    </div>
+    </section>
   </div>
 </div>

@@ -1,0 +1,146 @@
+<div class="stats-modal-backdrop" (click)="closed.emit()">
+  <div class="stats-modal-dialog" (click)="$event.stopPropagation()">
+    <!-- 1. Header Bar -->
+    <header class="stats-modal-header">
+      <div class="header-tag-pill">
+        <img src="assets/ai-social/emergency/megaphone-01.svg" alt="" width="16" height="16" />
+        <span>Thông báo khẩn</span>
+      </div>
+      <div class="header-right-meta">
+        <div class="read-progress-box">
+          <div class="read-progress-track">
+            <div class="read-progress-fill" [style.width.%]="summary().readPercentage || 79"></div>
+          </div>
+          <span class="read-ratio"><strong>{{ readCount() }}/{{ totalRecipients() }}</strong> đã đọc</span>
+        </div>
+        <span class="meta-dot"></span>
+        <span class="deadline-text">Đọc xong trước {{ post().registrationDeadline || '11:00' }}</span>
+        <button type="button" class="close-icon-btn" (click)="closed.emit()">✕</button>
+      </div>
+    </header>
+
+    <!-- 2. Post Summary Banner Card -->
+    <div class="post-summary-card">
+      <img [src]="getThumbnail()" alt="" class="post-thumb" />
+      <div class="post-summary-info">
+        <h4 class="post-title">{{ post().title }}</h4>
+        <div class="post-meta-sub">
+          <span class="meta-label">Thời gian đăng:</span>
+          <span class="meta-val">{{ getFormattedTime() }}</span>
+          <span class="meta-dot"></span>
+          <span class="meta-label">Người đăng:</span>
+          <span class="meta-val">{{ post().authorName || 'Nguyễn Hiền' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Interaction Status Tabs & Search Bar -->
+    <div class="interaction-tabs-search-row">
+      <div class="interaction-tabs-group">
+        <button type="button" class="tab-item" [class.active]="activeTab() === 'read'" (click)="selectTab('read')">
+          <span class="tab-text">Đã đọc</span>
+          <span class="tab-badge gray">{{ readCount() }}</span>
+        </button>
+        <span class="tab-divider"></span>
+
+        <button type="button" class="tab-item" [class.active]="activeTab() === 'heart'" (click)="selectTab('heart')">
+          <span class="tab-text">Thả tim</span>
+          <span class="tab-badge heart-badge">{{ heartCount() }}</span>
+        </button>
+        <span class="tab-divider"></span>
+
+        <button type="button" class="tab-item" [class.active]="activeTab() === 'share'" (click)="selectTab('share')">
+          <span class="tab-text">Đã chia sẻ</span>
+          <span class="tab-badge gray">{{ shareCount() }}</span>
+        </button>
+        <span class="tab-divider"></span>
+
+        <button type="button" class="tab-item" [class.active]="activeTab() === 'unread'" (click)="selectTab('unread')">
+          <span class="tab-text">Chưa đọc</span>
+          <span class="tab-badge gray">{{ unreadCount() }}</span>
+        </button>
+      </div>
+
+      <div class="search-box">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Tìm kiếm"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event)"
+        />
+      </div>
+    </div>
+
+    <!-- 4. Department Filter Pills -->
+    <div class="unit-pills-row">
+      <button
+        type="button"
+        class="unit-pill"
+        [class.active]="selectedUnitId() === 'all'"
+        (click)="selectUnit('all')"
+      >
+        Tất cả
+      </button>
+      @for (u of unitItems(); track u.unitId) {
+        <button
+          type="button"
+          class="unit-pill"
+          [class.active]="selectedUnitId() === u.unitId"
+          (click)="selectUnit(u.unitId)"
+        >
+          {{ u.unitName }} ({{ u.totalCount }})
+        </button>
+      }
+    </div>
+
+    <!-- 5. Interactive Recipients List -->
+    <div class="recipients-list-card">
+      @if (filteredUsers().length === 0) {
+        <div class="empty-list-notice">Không tìm thấy người nhận nào phù hợp bộ lọc</div>
+      }
+      @for (usr of filteredUsers(); track usr.id) {
+        <div class="recipient-row">
+          <div class="user-info-col">
+            @if (usr.avatarUrl) {
+              <img [src]="usr.avatarUrl" alt="" class="user-avatar" />
+            } @else {
+              <div class="user-avatar placeholder">{{ usr.fullName[0] }}</div>
+            }
+            <div class="user-text-col">
+              <span class="user-fullname">{{ usr.fullName }}</span>
+              <span class="user-jobtitle">{{ usr.jobTitle || 'Chuyên viên' }}</span>
+            </div>
+          </div>
+          <div class="user-status-col">
+            @if (activeTab() === 'share' && (usr.shareCount || 0) > 1) {
+              <span class="share-count-pill">{{ usr.shareCount }} lượt</span>
+            }
+            <span class="interaction-time">{{ usr.timeText }}</span>
+            @if (usr.status === 'read' && activeTab() !== 'heart') {
+              <svg class="status-icon tick-double" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0057E5" stroke-width="2.5">
+                <path d="M18 6L7 17l-5-5"></path>
+                <path d="M22 10l-7.5 7.5L13 16"></path>
+              </svg>
+            }
+            @if (usr.isHearted || activeTab() === 'heart') {
+              <svg class="status-icon heart-icon" width="20" height="20" viewBox="0 0 24 24" fill="#F52833">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- 6. Footer Actions -->
+    <footer class="stats-modal-footer">
+      <button type="button" class="btn-outline-close" (click)="closed.emit()">Đóng</button>
+      <button type="button" class="btn-primary-export" (click)="exportExcel()">Xuất Excel</button>
+    </footer>
+  </div>
+</div>

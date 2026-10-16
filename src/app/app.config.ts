@@ -9,13 +9,19 @@ import { provideNzIcons } from 'ng-zorro-antd/icon';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { routes } from './app.routes';
 import { aiSocialAuthInterceptor } from './core/interceptors/ai-social-auth.interceptor';
+import { aiSocialResponseInterceptor } from './core/interceptors/ai-social-response.interceptor';
 import { nzIcons } from './nz-icons';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
     provideRouter(routes, withRouterConfig({ onSameUrlNavigation: 'reload' })),
-    provideHttpClient(withInterceptors([aiSocialAuthInterceptor])),
+    provideHttpClient(
+      withInterceptors([
+        aiSocialAuthInterceptor,
+        aiSocialResponseInterceptor,
+      ]),
+    ),
     { provide: NZ_I18N, useValue: vi_VN },
     { provide: NZ_DATE_LOCALE, useValue: vietnam },
     provideNzDateFnsAdapter(),

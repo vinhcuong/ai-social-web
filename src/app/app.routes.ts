@@ -1,41 +1,31 @@
 import { Routes } from '@angular/router';
-import { authGuard, redirectIfLoggedInGuard } from './core/guards/auth.guard';
-import { AI_SOCIAL_ROUTES } from './features/ai-social/ai-social.routes';
-import { AiSocialShellComponent } from './shell/ai-social-shell.component';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
     path: 'login',
-    canActivate: [redirectIfLoggedInGuard],
     loadComponent: () =>
       import('./auth/login/login.component').then((m) => m.LoginComponent),
   },
   {
-    path: 'login/otp-auth',
-    canActivate: [redirectIfLoggedInGuard],
+    path: 'otp',
     loadComponent: () =>
-      import('./auth/otp-auth/otp-auth.component').then(
-        (m) => m.OtpAuthComponent,
-      ),
-  },
-  {
-    path: 'auth/login',
-    redirectTo: 'login',
-    pathMatch: 'full',
-  },
-  {
-    path: 'auth/otp-auth',
-    redirectTo: 'login/otp-auth',
-    pathMatch: 'full',
+      import('./auth/otp-auth/otp-auth.component').then((m) => m.OtpAuthComponent),
   },
   {
     path: '',
-    component: AiSocialShellComponent,
     canActivate: [authGuard],
-    children: AI_SOCIAL_ROUTES,
+    loadComponent: () =>
+      import('./shell/ai-social-shell.component').then(
+        (m) => m.AiSocialShellComponent,
+      ),
+    loadChildren: () =>
+      import('./features/ai-social/ai-social.routes').then(
+        (m) => m.AI_SOCIAL_ROUTES,
+      ),
   },
   {
     path: '**',
-    redirectTo: 'channels/truyenthong',
+    redirectTo: 'home',
   },
 ];

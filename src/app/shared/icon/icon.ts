@@ -12,7 +12,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, effect, inject, input, 
         [style.width.px]="size()"
         [style.height.px]="size()"
         [style.--icon-url]="'url(' + resolvedPath() + ')'"
-        [style.--app-icon-color]="customClass().trim() ? null : 'var(--icon-color)'"
+        [style.--app-icon-color]="customClass().trim() ? null : 'var(--icon-color, currentColor)'"
       ></span>
     } @else {
       <img

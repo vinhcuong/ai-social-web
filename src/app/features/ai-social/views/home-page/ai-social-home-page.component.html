@@ -1,0 +1,124 @@
+<div class="home-ai-social-page">
+  <section class="pinned-section-card">
+    <!-- 4 Pinned Channel Cards (288x190 each, gap 11px) -->
+    <div class="pinned-cards-grid">
+      @for (card of pinnedCards; track card.code) {
+        <article
+          class="workspace-channel-card"
+          [style.border-color]="card.borderColor"
+          (click)="openChannel(card.code)"
+        >
+          <img
+            class="card-bg-image"
+            [src]="card.bgAsset"
+            [alt]="card.title"
+            loading="eager"
+          />
+
+          <img
+            class="card-3d-icon"
+            [src]="card.iconAsset"
+            [alt]="card.title"
+            loading="eager"
+          />
+
+          @if (getBadgeLabel(card.code); as badgeText) {
+            <span class="colorful-tag" [attr.data-variant]="card.tagStyle">
+              @if (card.code === 'khan') {
+                <img src="assets/ai-social/home/ic-dot-red.svg" alt="" class="tag-dot" />
+              } @else if (card.code === 'sukien') {
+                <img src="assets/ai-social/home/ic-dot-amber.svg" alt="" class="tag-dot" />
+              } @else if (card.code === 'truyenthong') {
+                <span class="inline-dot"></span>
+              }
+              <span>{{ badgeText }}</span>
+            </span>
+          }
+
+          <div class="card-bottom-info">
+            <h3 class="card-title">{{ card.title }}</h3>
+            <p class="card-subtitle">{{ card.subtitle }}</p>
+          </div>
+        </article>
+      }
+    </div>
+
+    <!-- Active Emergency Alert Banner (Figma node 4818:54058) -->
+    @if (activeEmergency(); as emergency) {
+      <div class="emergency-alert-banner" (click)="openEmergencyDetail(emergency)">
+        <img
+          src="assets/ai-social/home/tin-khan.png"
+          alt="Tin khẩn"
+          class="emergency-alert-icon"
+        />
+
+        <div class="emergency-alert-content">
+          <h4 class="emergency-alert-title">{{ emergency.title }}</h4>
+          <p class="emergency-alert-desc">
+            <span>{{ emergencySummaryText() }}</span>
+            <button
+              type="button"
+              class="emergency-detail-link"
+              (click)="openEmergencyDetail(emergency, $event)"
+            >
+              <span>Chi tiết</span>
+              <img src="assets/ai-social/home/ic-arrow-right.svg" alt="→" />
+            </button>
+          </p>
+        </div>
+      </div>
+    }
+
+    <!-- Upcoming Schedule Card ("LỊCH SẮP TỚI" - Figma node 4818:54126) -->
+    <div class="upcoming-schedule-card">
+      <img
+        src="assets/ai-social/home/lich-sap-toi-3d.png"
+        alt="Lịch sắp tới"
+        class="floating-calendar-3d"
+      />
+
+      <header class="schedule-card-header">
+        <div class="schedule-icon-box">
+          <img
+            src="assets/ai-social/home/ic-calendar-upcoming-box.svg"
+            alt="Calendar"
+            width="24"
+            height="24"
+          />
+        </div>
+        <span class="schedule-heading">LỊCH SẮP TỚI</span>
+        <button
+          type="button"
+          class="schedule-manage-pill"
+          (click)="openChannel('sukien')"
+        >
+          Quản trị
+        </button>
+      </header>
+
+      <div class="schedule-days-container">
+        @for (group of upcomingSchedule(); track group.dateRangeLabel) {
+          <div class="schedule-day-row">
+            <div class="day-date-col">{{ group.dateRangeLabel }}</div>
+            <div class="day-events-col">
+              @for (ev of group.events; track ev.id) {
+                <button
+                  type="button"
+                  class="schedule-event-item"
+                  (click)="openScheduleEvent(ev)"
+                >
+                  <span
+                    class="event-category-dot"
+                    [style.background-color]="ev.dotColor"
+                  ></span>
+                  <span class="event-title-text">{{ ev.title }}</span>
+                  <span class="event-category-text">{{ ev.categoryLabel }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+</div>
